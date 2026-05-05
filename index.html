@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Bulk Stock</title>
     <style>
         :root {
@@ -15,7 +18,6 @@
             --subtext: #6b7280;
             --border: #e5e7eb;
         }
-
         * {
             margin: 0;
             padding: 0;
@@ -24,7 +26,6 @@
             -webkit-user-select: none;
             user-select: none;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -36,8 +37,6 @@
             -webkit-font-smoothing: antialiased;
             font-size: 18px;
         }
-
-        /* ========== TOP BAR ========== */
         .topbar {
             display: flex;
             align-items: center;
@@ -49,21 +48,18 @@
             z-index: 100;
             border-bottom: 2px solid var(--border);
         }
-
         .topbar-left .title {
             font-size: 1.6rem;
             font-weight: 800;
             letter-spacing: -0.5px;
             line-height: 1.1;
         }
-
         .topbar-left .date {
             font-size: 0.95rem;
             color: var(--subtext);
             font-weight: 500;
             margin-top: 2px;
         }
-
         .mode-switch {
             display: flex;
             gap: 6px;
@@ -71,7 +67,6 @@
             border-radius: 35px;
             padding: 5px;
         }
-
         .mode-btn {
             width: 55px;
             height: 55px;
@@ -80,21 +75,15 @@
             background: transparent;
             font-size: 1.8rem;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1;
         }
-
         .mode-btn.active {
             background: #1a1a1a;
             color: white;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transform: scale(1.05);
         }
-
-        /* ========== SEARCH BAR ========== */
         .search-bar {
             padding: 12px 20px;
             position: sticky;
@@ -102,7 +91,6 @@
             z-index: 99;
             background: var(--bg);
         }
-
         .search-input-wrap {
             display: flex;
             align-items: center;
@@ -110,19 +98,9 @@
             border-radius: 16px;
             padding: 4px 16px;
             border: 2px solid var(--border);
-            transition: border 0.2s;
         }
-
-        .search-input-wrap:focus-within {
-            border-color: #1a1a1a;
-        }
-
-        .search-icon {
-            font-size: 1.4rem;
-            margin-right: 8px;
-            flex-shrink: 0;
-        }
-
+        .search-input-wrap:focus-within { border-color: #1a1a1a; }
+        .search-icon { font-size: 1.4rem; margin-right: 8px; }
         .search-input-wrap input {
             flex: 1;
             padding: 16px 0;
@@ -131,412 +109,124 @@
             font-size: 1.1rem;
             font-weight: 500;
             outline: none;
-            min-width: 0;
         }
-
         .clear-search {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: #ddd;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: none;
-            align-items: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            border: none; background: #ddd; font-size: 1.1rem;
+            cursor: pointer; display: none; align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
-
-        .clear-search.visible {
-            display: flex;
-        }
-
-        /* ========== MAIN ========== */
-        .main-content {
-            padding: 8px 20px 120px 20px;
-        }
-
-        .section {
-            display: none;
-        }
-        .section.visible {
-            display: block;
-        }
-
-        /* ========== EDIT MODE ========== */
+        .clear-search.visible { display: flex; }
+        .main-content { padding: 8px 20px 120px 20px; }
+        .section { display: none; }
+        .section.visible { display: block; }
         .add-item-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: var(--card-bg);
-            padding: 14px;
-            border-radius: 20px;
-            flex-wrap: wrap;
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: var(--card-bg); padding: 14px; border-radius: 20px; flex-wrap: wrap;
         }
-
         .add-item-row input {
-            padding: 16px 18px;
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            font-size: 1.1rem;
-            background: white;
-            outline: none;
-            transition: border 0.2s;
-            font-weight: 500;
+            padding: 16px 18px; border: 2px solid var(--border);
+            border-radius: 16px; font-size: 1.1rem; background: white;
+            outline: none; font-weight: 500;
         }
-
-        .add-item-row input:focus {
-            border-color: #1a1a1a;
-        }
-
-        .add-item-row input.name-input {
-            flex: 2;
-            min-width: 140px;
-        }
-
-        .add-item-row input.qty-input {
-            flex: 1;
-            min-width: 80px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-
+        .add-item-row input:focus { border-color: #1a1a1a; }
+        .add-item-row input.name-input { flex: 2; min-width: 140px; }
+        .add-item-row input.qty-input { flex: 1; min-width: 80px; text-align: center; font-weight: 700; font-size: 1.2rem; }
         .add-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            background: #1a1a1a;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            font-weight: 300;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .add-btn:active {
-            transform: scale(0.9);
-            background: #444;
-        }
-
-        .edit-item-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        .add-btn:active { transform: scale(0.9); background: #444; }
+        .sync-indicator { text-align: center; font-size: 0.75rem; color: #999; margin-bottom: 8px; }
+        .sync-indicator.syncing { color: #f39c12; }
+        .sync-indicator.synced { color: #2ecc71; }
+        .edit-item-list { display: flex; flex-direction: column; gap: 10px; }
         .edit-item-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--card-bg);
-            padding: 18px 20px;
-            border-radius: 18px;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.15s;
-            border: 2px solid transparent;
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--card-bg); padding: 18px 20px; border-radius: 18px;
+            gap: 12px; cursor: pointer; border: 2px solid transparent;
         }
-
-        .edit-item-card:active {
-            background: #e9ecef;
-            border-color: #1a1a1a;
-            transform: scale(0.98);
-        }
-
-        .edit-item-card.hidden-by-search {
-            display: none;
-        }
-
-        .edit-item-card .item-name-edit {
-            flex: 1;
-            font-size: 1.15rem;
-            font-weight: 600;
-            word-break: break-word;
-        }
-
+        .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
+        .edit-item-card.hidden-by-search { display: none; }
+        .edit-item-card .item-name-edit { flex: 1; font-size: 1.15rem; font-weight: 600; word-break: break-word; }
         .edit-item-card .qty-badge-edit {
-            font-size: 1.5rem;
-            font-weight: 800;
-            min-width: 50px;
-            text-align: center;
-            padding: 8px 16px;
-            border-radius: 30px;
-            background: white;
+            font-size: 1.5rem; font-weight: 800; min-width: 50px;
+            text-align: center; padding: 8px 16px; border-radius: 30px; background: white;
         }
-
         .edit-item-card .qty-badge-edit.green { color:#1e8449; background:#eafaf1; }
         .edit-item-card .qty-badge-edit.orange { color:#b7950b; background:#fef9e7; }
         .edit-item-card .qty-badge-edit.red { color:#b03a2e; background:#fdedec; }
-
         .delete-btn-edit {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: none;
-            background: transparent;
-            color: #ccc;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 50%; border: none;
+            background: transparent; color: #ccc; font-size: 1.4rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .delete-btn-edit:active {
-            color: var(--red);
-            background: #fee;
-        }
-
-        .no-search-results {
-            text-align: center;
-            padding: 40px 20px;
-            color: #bbb;
-            font-size: 1rem;
-            font-weight: 600;
-            display: none;
-        }
-
-        .no-search-results.visible {
-            display: block;
-        }
-
-        /* ========== VIEW MODE ========== */
-        .view-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .summary-pills {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .pill {
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            letter-spacing: 0.2px;
-        }
-
+        .delete-btn-edit:active { color: var(--red); background: #fee; }
+        .no-search-results { text-align: center; padding: 40px 20px; color: #bbb; font-size: 1rem; font-weight: 600; display: none; }
+        .no-search-results.visible { display: block; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .summary-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+        .pill { padding: 10px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; }
         .pill.total { background:#ebf5fb; color:#2471a3; }
         .pill.green { background:#eafaf1; color:#1e8449; }
         .pill.orange { background:#fef9e7; color:#b7950b; }
         .pill.red { background:#fdedec; color:#b03a2e; }
-
         .reminder-toggle-view {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            background: var(--card-bg);
-            padding: 12px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.15s;
+            display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700;
+            background: var(--card-bg); padding: 12px 20px; border-radius: 30px; cursor: pointer;
         }
-
-        .reminder-toggle-view:active {
-            border-color: #1a1a1a;
-            transform: scale(0.96);
-        }
-
-        .view-item-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        .reminder-toggle-view:active { border-color: #1a1a1a; transform: scale(0.96); }
+        .view-item-list { display: flex; flex-direction: column; gap: 10px; }
         .view-item-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 22px 20px;
-            border-radius: 18px;
-            font-weight: 700;
-            font-size: 1.15rem;
-            background: var(--card-bg);
-            border-left: 8px solid transparent;
-            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 22px 20px; border-radius: 18px; font-weight: 700; font-size: 1.15rem;
+            background: var(--card-bg); border-left: 8px solid transparent;
         }
-
-        .view-item-card.hidden-by-search {
-            display: none;
-        }
-
+        .view-item-card.hidden-by-search { display: none; }
         .view-item-card.status-green { border-left-color: var(--green); background:#f9fdf9; }
         .view-item-card.status-orange { border-left-color: var(--orange); background:#fffdf7; }
         .view-item-card.status-red {
-            border-left-color: var(--red);
-            background:#fefafa;
-            opacity: 0.65;
-            text-decoration: line-through;
-            text-decoration-color: #ccc;
-            text-decoration-thickness: 2px;
-            color: #999;
+            border-left-color: var(--red); background:#fefafa; opacity: 0.65;
+            text-decoration: line-through; text-decoration-color: #ccc; color: #999;
         }
-
-        .view-qty-badge {
-            font-size: 1.6rem;
-            font-weight: 900;
-            min-width: 55px;
-            text-align: center;
-            padding: 6px 16px;
-            border-radius: 30px;
-        }
-
+        .view-qty-badge { font-size: 1.6rem; font-weight: 900; min-width: 55px; text-align: center; padding: 6px 16px; border-radius: 30px; }
         .view-qty-badge.green { color:#1e8449; background:#eafaf1; }
         .view-qty-badge.orange { color:#b7950b; background:#fef9e7; }
         .view-qty-badge.red { color:#b03a2e; background:#fdedec; }
-
-        /* ========== POPUP MODAL ========== */
-        .modal-overlay {
-            position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.55);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s;
-        }
-
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-
-        .modal-box {
-            background: white;
-            border-radius: 28px;
-            padding: 30px 24px 24px 24px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-
-        .modal-box .modal-title {
-            font-size: 1.3rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .modal-box .modal-subtitle {
-            font-size: 0.9rem;
-            color: var(--subtext);
-            margin-bottom: 20px;
-        }
-
-        .modal-box input {
-            width: 100%;
-            padding: 20px;
-            font-size: 2rem;
-            font-weight: 800;
-            text-align: center;
-            border: 3px solid var(--border);
-            border-radius: 20px;
-            outline: none;
-            margin-bottom: 20px;
-            background: var(--card-bg);
-            transition: border 0.2s;
-        }
-
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .modal-box { background: white; border-radius: 28px; padding: 30px 24px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-box .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+        .modal-box .modal-subtitle { font-size: 0.9rem; color: var(--subtext); margin-bottom: 20px; }
+        .modal-box input { width: 100%; padding: 20px; font-size: 2rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 20px; outline: none; margin-bottom: 20px; background: var(--card-bg); }
         .modal-box input:focus { border-color: #1a1a1a; }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 16px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-btn { flex: 1; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 50px; border: none; cursor: pointer; }
         .modal-btn:active { transform: scale(0.94); }
         .modal-btn.cancel { background:#f1f3f5; color:#666; }
         .modal-btn.save { background:#1a1a1a; color:white; }
-
-        /* ========== EMPTY STATE ========== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #bbb;
-        }
-        .empty-state .big-icon {
-            font-size: 5rem;
-            display: block;
-            margin-bottom: 16px;
-        }
-        .empty-state p {
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        /* ========== TOAST ========== */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a1a;
-            color: white;
-            padding: 14px 28px;
-            border-radius: 35px;
-            font-size: 1rem;
-            font-weight: 700;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #bbb; }
+        .empty-state .big-icon { font-size: 5rem; display: block; margin-bottom: 16px; }
+        .empty-state p { font-size: 1.1rem; font-weight: 500; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 28px; border-radius: 35px; font-size: 1rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
-
-        .reminder-mini {
-            font-size: 0.9rem;
-            color: var(--subtext);
-            text-align: center;
-            padding: 16px 0 0 0;
-            font-weight: 600;
-        }
+        .reminder-mini { font-size: 0.9rem; color: var(--subtext); text-align: center; padding: 16px 0 0 0; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <!-- TOP BAR -->
     <div class="topbar">
         <div class="topbar-left">
             <div class="title">📦 Bulk Stock</div>
             <div class="date" id="dateDisplay"></div>
         </div>
         <div class="mode-switch">
-            <button class="mode-btn active" id="btnEdit" onclick="switchMode('edit')" title="Edit">✏️</button>
-            <button class="mode-btn" id="btnView" onclick="switchMode('view')" title="View">📖</button>
+            <button class="mode-btn active" id="btnEdit" onclick="switchMode('edit')">✏️</button>
+            <button class="mode-btn" id="btnView" onclick="switchMode('view')">📖</button>
         </div>
     </div>
 
-    <!-- SEARCH BAR -->
-    <div class="search-bar" id="searchBar">
+    <div class="search-bar">
         <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" placeholder="Search items..." autocomplete="off" oninput="filterItems()">
@@ -544,25 +234,18 @@
         </div>
     </div>
 
-    <!-- MAIN -->
     <div class="main-content">
-
-        <!-- EDIT SECTION -->
+        <div class="sync-indicator" id="syncIndicator">● Ready</div>
         <div class="section visible" id="editSection">
             <div class="add-item-row">
-                <input type="text" id="newItemName" class="name-input" placeholder="Item name..." autocomplete="off" inputmode="text">
-                <input type="number" id="newItemQty" class="qty-input" placeholder="Qty" value="10" min="0" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" id="newItemName" class="name-input" placeholder="Item name..." autocomplete="off">
+                <input type="number" id="newItemQty" class="qty-input" placeholder="Qty" value="10" min="0">
                 <button class="add-btn" onclick="addItem()">+</button>
             </div>
             <div class="edit-item-list" id="editItemList"></div>
             <div class="no-search-results" id="editNoResults">🔍 No matching items found.</div>
-            <div class="empty-state" id="editEmpty" style="display:none;">
-                <span class="big-icon">📝</span>
-                <p>No items yet.<br>Add your first bulk item above.</p>
-            </div>
+            <div class="empty-state" id="editEmpty" style="display:none;"><span class="big-icon">📝</span><p>No items yet.<br>Add your first bulk item above.</p></div>
         </div>
-
-        <!-- VIEW SECTION -->
         <div class="section" id="viewSection">
             <div class="view-header">
                 <div class="summary-pills">
@@ -572,26 +255,21 @@
                     <span class="pill red" id="pillRed">● 0</span>
                 </div>
                 <div class="reminder-toggle-view" onclick="toggleReminderView()">
-                    <span id="reminderIconView">🔔</span>
-                    <span id="reminderTextView">ON</span>
+                    <span id="reminderIconView">🔔</span><span id="reminderTextView">ON</span>
                 </div>
             </div>
             <div class="view-item-list" id="viewItemList"></div>
             <div class="no-search-results" id="viewNoResults">🔍 No matching items found.</div>
-            <div class="empty-state" id="viewEmpty" style="display:none;">
-                <span class="big-icon">📖</span>
-                <p>Nothing to show.<br>Switch to ✏️ Edit to add items.</p>
-            </div>
+            <div class="empty-state" id="viewEmpty" style="display:none;"><span class="big-icon">📖</span><p>Nothing to show.</p></div>
             <div class="reminder-mini" id="nextReminderMini"></div>
         </div>
     </div>
 
-    <!-- QUANTITY POPUP MODAL -->
     <div class="modal-overlay" id="qtyModal" style="display:none;" onclick="closeModalOutside(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-title">Update Quantity</div>
             <div class="modal-subtitle" id="modalSubtitle"></div>
-            <input type="number" id="modalInput" inputmode="numeric" pattern="[0-9]*" min="0" value="0">
+            <input type="number" id="modalInput" min="0" value="0">
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeQtyModal()">Cancel</button>
                 <button class="modal-btn save" onclick="saveQtyModal()">Save</button>
@@ -599,13 +277,16 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
     <script>
-        const STORAGE_KEY = 'bulk_stock_data_v4';
-        const REMINDER_KEY = 'bulk_reminder_on_v4';
-        const RESET_DATE_KEY = 'bulk_reset_date_v4';
+        // ============ YOUR BIN ID ============
+        const BIN_ID = '69f99074856a682189a9db4e';
+        const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+        const HEADERS = {
+            'Content-Type': 'application/json',
+            'X-Master-Key': '$2a$10$YQ9zF8HfG5vKpZxRq3W1OeT7UjBwMnVcL4sD6fG8hI9jK0lN1mO2p'
+        };
 
         let stockData = [];
         let reminderOn = true;
@@ -613,158 +294,105 @@
         let reminderInterval = null;
         let editingIndex = null;
 
-        function loadData() {
-            const today = new Date().toDateString();
-            const savedDate = localStorage.getItem(RESET_DATE_KEY);
-            if (savedDate !== today) {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    stockData = JSON.parse(saved);
-                    stockData.forEach(item => item.qty = 0);
-                } else {
-                    stockData = [];
-                }
-                localStorage.setItem(RESET_DATE_KEY, today);
-            } else {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                stockData = saved ? JSON.parse(saved) : [];
+        function setSyncStatus(s) {
+            const el = document.getElementById('syncIndicator');
+            el.className = 'sync-indicator ' + s;
+            el.textContent = s === 'syncing' ? '⟳ Syncing...' : s === 'synced' ? '● Synced' : '● Ready';
+        }
+
+        async function fetchData() {
+            try {
+                setSyncStatus('syncing');
+                const res = await fetch(API_URL + '/latest', { headers: HEADERS });
+                const json = await res.json();
+                stockData = json.record || [];
+                setSyncStatus('synced');
+                renderAll();
+            } catch (e) {
+                setSyncStatus('');
+                showToast('⚠️ Connection error');
             }
-            const savedReminder = localStorage.getItem(REMINDER_KEY);
-            reminderOn = savedReminder !== null ? JSON.parse(savedReminder) : true;
         }
 
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stockData));
-            localStorage.setItem(RESET_DATE_KEY, new Date().toDateString());
+        async function saveAll() {
+            try {
+                setSyncStatus('syncing');
+                await fetch(API_URL, { method: 'PUT', headers: HEADERS, body: JSON.stringify(stockData) });
+                setSyncStatus('synced');
+            } catch (e) {
+                showToast('⚠️ Save failed');
+                setSyncStatus('');
+            }
         }
 
-        function saveReminder() {
-            localStorage.setItem(REMINDER_KEY, JSON.stringify(reminderOn));
-        }
-
-        function getStatus(qty) {
-            if (qty === 0) return 'red';
-            if (qty <= 5) return 'orange';
-            return 'green';
-        }
-
+        function getStatus(qty) { if (qty === 0) return 'red'; if (qty <= 5) return 'orange'; return 'green'; }
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => toast.classList.remove('show'), 1800);
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
         }
-
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        // ============ SEARCH ============
-        function getSearchTerm() {
-            return document.getElementById('searchInput').value.trim().toLowerCase();
-        }
+        function escapeHTML(s) { const d = document.createElement('div');
+            d.textContent = s; return d.innerHTML; }
+        function getSearchTerm() { return document.getElementById('searchInput').value.trim().toLowerCase(); }
 
         function filterItems() {
             const term = getSearchTerm();
-            const clearBtn = document.getElementById('clearSearchBtn');
-            if (term.length > 0) {
-                clearBtn.classList.add('visible');
-            } else {
-                clearBtn.classList.remove('visible');
-            }
+            document.getElementById('clearSearchBtn').classList.toggle('visible', term.length > 0);
             applySearchFilter();
         }
-
         function clearSearch() {
             document.getElementById('searchInput').value = '';
             document.getElementById('clearSearchBtn').classList.remove('visible');
             applySearchFilter();
             document.getElementById('searchInput').focus();
         }
-
         function applySearchFilter() {
             const term = getSearchTerm();
-            // Edit mode
-            const editCards = document.querySelectorAll('#editItemList .edit-item-card');
-            let editVisible = 0;
-            editCards.forEach(card => {
-                const name = card.querySelector('.item-name-edit').textContent.toLowerCase();
-                if (term === '' || name.includes(term)) {
-                    card.classList.remove('hidden-by-search');
-                    editVisible++;
-                } else {
-                    card.classList.add('hidden-by-search');
-                }
+            const ec = document.querySelectorAll('#editItemList .edit-item-card');
+            let ev = 0;
+            ec.forEach(c => {
+                const n = c.querySelector('.item-name-edit').textContent.toLowerCase();
+                const match = term === '' || n.includes(term);
+                c.classList.toggle('hidden-by-search', !match);
+                if (match) ev++;
             });
-            document.getElementById('editNoResults').classList.toggle('visible', editVisible === 0 && stockData.length > 0 && term !== '');
+            document.getElementById('editNoResults').classList.toggle('visible', ev === 0 && stockData.length > 0 && term !== '');
             document.getElementById('editEmpty').style.display = (stockData.length === 0 && term === '') ? 'block' : 'none';
-
-            // View mode
-            const viewCards = document.querySelectorAll('#viewItemList .view-item-card');
-            let viewVisible = 0;
-            viewCards.forEach(card => {
-                const name = card.querySelector('span').textContent.toLowerCase();
-                if (term === '' || name.includes(term)) {
-                    card.classList.remove('hidden-by-search');
-                    viewVisible++;
-                } else {
-                    card.classList.add('hidden-by-search');
-                }
+            const vc = document.querySelectorAll('#viewItemList .view-item-card');
+            let vv = 0;
+            vc.forEach(c => {
+                const n = c.querySelector('span').textContent.toLowerCase();
+                const match = term === '' || n.includes(term);
+                c.classList.toggle('hidden-by-search', !match);
+                if (match) vv++;
             });
-            document.getElementById('viewNoResults').classList.toggle('visible', viewVisible === 0 && stockData.length > 0 && term !== '');
+            document.getElementById('viewNoResults').classList.toggle('visible', vv === 0 && stockData.length > 0 && term !== '');
         }
 
-        // ============ RENDER EDIT ============
         function renderEdit() {
             const list = document.getElementById('editItemList');
             const empty = document.getElementById('editEmpty');
-            if (stockData.length === 0) {
-                list.innerHTML = '';
-                empty.style.display = 'block';
-                document.getElementById('editNoResults').classList.remove('visible');
-                return;
-            }
+            if (stockData.length === 0) { list.innerHTML = '';
+                empty.style.display = 'block'; return; }
             empty.style.display = 'none';
             list.innerHTML = stockData.map((item, idx) => {
-                const status = getStatus(item.qty);
-                return `
-                    <div class="edit-item-card" onclick="openQtyModal(${idx})">
-                        <span class="item-name-edit">${escapeHTML(item.name)}</span>
-                        <span class="qty-badge-edit ${status}">${item.qty}</span>
-                        <button class="delete-btn-edit" onclick="deleteItem(event, ${idx})">🗑️</button>
-                    </div>
-                `;
+                const s = getStatus(item.qty);
+                return `<div class="edit-item-card" onclick="openQtyModal(${idx})"><span class="item-name-edit">${escapeHTML(item.name)}</span><span class="qty-badge-edit ${s}">${item.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${idx})">🗑️</button></div>`;
             }).join('');
             applySearchFilter();
         }
 
-        // ============ RENDER VIEW ============
         function renderView() {
             const list = document.getElementById('viewItemList');
             const empty = document.getElementById('viewEmpty');
-            if (stockData.length === 0) {
-                list.innerHTML = '';
+            if (stockData.length === 0) { list.innerHTML = '';
                 empty.style.display = 'block';
-                document.getElementById('viewNoResults').classList.remove('visible');
-                updatePills();
-                return;
-            }
+                updatePills(); return; }
             empty.style.display = 'none';
-            const sorted = [...stockData].sort((a, b) => {
-                const order = { red: 3, orange: 2, green: 1 };
-                return (order[getStatus(a.qty)] || 0) - (order[getStatus(b.qty)] || 0);
-            });
+            const sorted = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
             list.innerHTML = sorted.map(item => {
-                const status = getStatus(item.qty);
-                return `
-                    <div class="view-item-card status-${status}">
-                        <span>${escapeHTML(item.name)}</span>
-                        <span class="view-qty-badge ${status}">${item.qty}</span>
-                    </div>
-                `;
+                const s = getStatus(item.qty);
+                return `<div class="view-item-card status-${s}"><span>${escapeHTML(item.name)}</span><span class="view-qty-badge ${s}">${item.qty}</span></div>`;
             }).join('');
             updatePills();
             updateReminderMini();
@@ -772,164 +400,136 @@
         }
 
         function updatePills() {
-            let total = 0, green = 0, orange = 0, red = 0;
-            stockData.forEach(item => {
-                total += item.qty;
-                const s = getStatus(item.qty);
-                if (s === 'green') green++;
-                if (s === 'orange') orange++;
-                if (s === 'red') red++;
-            });
+            let total = 0,
+                g = 0,
+                o = 0,
+                r = 0;
+            stockData.forEach(item => { total += item.qty; const s = getStatus(item.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
             document.getElementById('pillTotal').textContent = 'Total: ' + total;
-            document.getElementById('pillGreen').textContent = '● ' + green;
-            document.getElementById('pillOrange').textContent = '● ' + orange;
-            document.getElementById('pillRed').textContent = '● ' + red;
+            document.getElementById('pillGreen').textContent = '● ' + g;
+            document.getElementById('pillOrange').textContent = '● ' + o;
+            document.getElementById('pillRed').textContent = '● ' + r;
         }
 
-        function renderAll() {
-            renderEdit();
-            renderView();
-        }
+        function renderAll() { renderEdit();
+            renderView(); }
 
-        // ============ QUANTITY MODAL ============
         function openQtyModal(idx) {
             editingIndex = idx;
-            const item = stockData[idx];
-            document.getElementById('modalSubtitle').textContent = item.name;
-            document.getElementById('modalInput').value = item.qty;
+            document.getElementById('modalSubtitle').textContent = stockData[idx].name;
+            document.getElementById('modalInput').value = stockData[idx].qty;
             document.getElementById('qtyModal').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('modalInput').focus();
-                document.getElementById('modalInput').select();
-            }, 150);
+            setTimeout(() => { document.getElementById('modalInput').focus();
+                document.getElementById('modalInput').select(); }, 150);
         }
 
-        function closeQtyModal() {
-            document.getElementById('qtyModal').style.display = 'none';
-            editingIndex = null;
-        }
+        function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none';
+            editingIndex = null; }
 
-        function closeModalOutside(e) {
-            if (e.target === document.getElementById('qtyModal')) closeQtyModal();
-        }
+        function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
 
         function saveQtyModal() {
             if (editingIndex === null) return;
-            const newQty = parseInt(document.getElementById('modalInput').value) || 0;
-            stockData[editingIndex].qty = Math.max(0, newQty);
-            saveData();
-            renderAll();
+            stockData[editingIndex].qty = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
+            saveAll();
             showToast('✅ Updated: ' + stockData[editingIndex].name);
             closeQtyModal();
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (document.getElementById('qtyModal').style.display === 'flex') {
-                if (e.key === 'Enter') { e.preventDefault(); saveQtyModal(); }
-                if (e.key === 'Escape') closeQtyModal();
-            }
-        });
+        document.addEventListener('keydown', function(e) { if (document.getElementById('qtyModal').style.display === 'flex') { if (e.key === 'Enter') { e.preventDefault();
+                saveQtyModal(); } if (e.key === 'Escape') closeQtyModal(); } });
 
-        // ============ ACTIONS ============
         function addItem() {
-            const nameInput = document.getElementById('newItemName');
-            const qtyInput = document.getElementById('newItemQty');
-            const name = nameInput.value.trim();
-            const qty = parseInt(qtyInput.value) || 0;
-            if (!name) { showToast('⚠️ Please enter item name'); nameInput.focus(); return; }
-            if (stockData.some(item => item.name.toLowerCase() === name.toLowerCase())) {
-                showToast('⚠️ Item already exists'); return;
-            }
-            stockData.push({ name, qty: Math.max(0, qty) });
-            saveData();
-            nameInput.value = '';
-            qtyInput.value = '10';
-            nameInput.focus();
-            renderAll();
-            showToast('✅ Added: ' + name);
+            const n = document.getElementById('newItemName').value.trim();
+            const q = parseInt(document.getElementById('newItemQty').value) || 0;
+            if (!n) { showToast('⚠️ Enter item name'); return; }
+            if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
+            stockData.push({ name: n, qty: Math.max(0, q) });
+            saveAll();
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemQty').value = '10';
+            document.getElementById('newItemName').focus();
+            showToast('✅ Added: ' + n);
         }
 
-        function deleteItem(event, idx) {
-            event.stopPropagation();
-            const name = stockData[idx].name;
+        function deleteItem(e, idx) {
+            e.stopPropagation();
+            const n = stockData[idx].name;
             stockData.splice(idx, 1);
-            saveData();
-            renderAll();
-            showToast('🗑️ Removed: ' + name);
+            saveAll();
+            showToast('🗑️ Removed: ' + n);
         }
 
-        function switchMode(mode) {
-            currentMode = mode;
-            document.getElementById('btnEdit').classList.toggle('active', mode === 'edit');
-            document.getElementById('btnView').classList.toggle('active', mode === 'view');
-            document.getElementById('editSection').classList.toggle('visible', mode === 'edit');
-            document.getElementById('viewSection').classList.toggle('visible', mode === 'view');
+        function switchMode(m) {
+            currentMode = m;
+            document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
+            document.getElementById('btnView').classList.toggle('active', m === 'view');
+            document.getElementById('editSection').classList.toggle('visible', m === 'edit');
+            document.getElementById('viewSection').classList.toggle('visible', m === 'view');
             renderAll();
         }
 
-        // ============ REMINDER ============
         function playAlarm() {
-            try {
-                const ctx = new(window.AudioContext || window.webkitAudioContext)();
-                function beep(f,d,delay){setTimeout(()=>{const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='square';g.gain.value=0.3;o.start();o.stop(ctx.currentTime+d);},delay);}
-                beep(880,0.15,0);beep(880,0.15,200);beep(880,0.15,400);
-            }catch(e){}
-            if(navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
-            if('Notification' in window && Notification.permission==='granted'){
-                new Notification('🔔 Bulk Stock Check!',{body:'Check remaining stock now.',tag:'bulk-reminder',requireInteraction:true});
-            }
+            try { const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const beep = (f, d, del) => setTimeout(() => { const o = ctx.createOscillator(),
+                        g = ctx.createGain();
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.frequency.value = f;
+                    o.type = 'square';
+                    g.gain.value = 0.3;
+                    o.start();
+                    o.stop(ctx.currentTime + d); }, del);
+                beep(880, 0.15, 0);
+                beep(880, 0.15, 200);
+                beep(880, 0.15, 400); } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+            if ('Notification' in window && Notification.permission === 'granted') new Notification('🔔 Bulk Stock Check!', { body: 'Check remaining stock now.', tag: 'bulk-reminder', requireInteraction: true });
         }
 
         function startReminder() {
             stopReminder();
-            reminderInterval = setInterval(() => {
-                const hour = new Date().getHours();
-                if(hour>=19 && hour<=23) playAlarm();
-                if(currentMode==='view') updateReminderMini();
-            }, 60*1000);
-            const hour = new Date().getHours();
-            if(hour>=19 && hour<=23) setTimeout(()=>playAlarm(),3000);
+            reminderInterval = setInterval(() => { const h = new Date().getHours(); if (h >= 19 && h <= 23) playAlarm(); if (currentMode === 'view') updateReminderMini(); }, 60000);
+            if (new Date().getHours() >= 19 && new Date().getHours() <= 23) setTimeout(playAlarm, 3000);
             updateReminderMini();
         }
 
-        function stopReminder() {
-            if(reminderInterval){clearInterval(reminderInterval);reminderInterval=null;}
-        }
+        function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval);
+                reminderInterval = null; } }
 
         function toggleReminderView() {
-            reminderOn=!reminderOn;saveReminder();
-            if(reminderOn) startReminder(); else stopReminder();
-            updateReminderViewToggle();
-            showToast(reminderOn?'🔔 Reminder ON':'🔕 Reminder OFF');
-        }
-
-        function updateReminderViewToggle() {
-            document.getElementById('reminderIconView').textContent=reminderOn?'🔔':'🔕';
-            document.getElementById('reminderTextView').textContent=reminderOn?'ON':'OFF';
+            reminderOn = !reminderOn;
+            localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
+            reminderOn ? startReminder() : stopReminder();
+            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
+            showToast(reminderOn ? '🔔 Reminder ON' : '🔕 Reminder OFF');
         }
 
         function updateReminderMini() {
-            const el=document.getElementById('nextReminderMini');
-            if(!reminderOn){el.textContent='🔕 Reminder is OFF';return;}
-            const now=new Date();const h=now.getHours();
+            const el = document.getElementById('nextReminderMini');
+            if (!reminderOn) { el.textContent = '🔕 Reminder OFF'; return; }
+            const h = new Date().getHours();
             let next;
-            if(h<19) next='7:00 PM';
-            else if(h>=23) next='Tomorrow 7:00 PM';
-            else {const nh=h+1;const hour12=nh>12?nh-12:nh;const ampm=nh>=12?'PM':'AM';next=hour12+':00 '+ampm;}
-            el.textContent='⏰ Next alert: '+next;
+            if (h < 19) next = '7:00 PM';
+            else if (h >= 23) next = 'Tomorrow 7:00 PM';
+            else { const nh = h + 1;
+                next = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
+            el.textContent = '⏰ Next alert: ' + next;
         }
 
-        // ============ INIT ============
-        function init() {
-            loadData();
-            const d=new Date();
-            document.getElementById('dateDisplay').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-            if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
-            document.getElementById('newItemName').addEventListener('keydown',function(e){if(e.key==='Enter') addItem();});
-            document.getElementById('newItemQty').addEventListener('keydown',function(e){if(e.key==='Enter') addItem();});
-            renderAll();
-            updateReminderViewToggle();
-            if(reminderOn) startReminder(); else updateReminderMini();
+        async function init() {
+            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+            reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
+            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
+            document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
+            document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
+            await fetchData();
+            if (reminderOn) startReminder();
+            else updateReminderMini();
+            setInterval(fetchData, 10000);
         }
 
         init();
