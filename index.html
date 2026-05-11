@@ -72,17 +72,15 @@
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
 
-        /* ========== NOTIFICATION ALERT (Uiverse.io Style) ========== */
+        /* ========== NOTIFICATION ALERT ========== */
         .notifications-container {
             position: fixed;
-            top: 12px;
+            top: 14px;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 380px;
+            width: 92%;
+            max-width: 400px;
             z-index: 3000;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
@@ -92,37 +90,45 @@
             pointer-events: auto;
         }
         .error-alert {
-            border-radius: 0.5rem;
-            padding: 0.875rem 1rem;
-            background-color: rgb(254 242 242);
-            border: 1px solid rgb(252 165 165);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            background-color: #fef2f2;
+            border: 2px solid #fca5a5;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
             display: flex;
-            gap: 0.75rem;
+            gap: 14px;
             align-items: flex-start;
         }
         .error-svg {
             color: #F87171;
-            width: 1.25rem;
-            height: 1.25rem;
+            width: 24px;
+            height: 24px;
             flex-shrink: 0;
-            margin-top: 1px;
+            margin-top: 2px;
         }
         .error-prompt-container {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
         .error-prompt-heading {
             color: #991B1B;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 800;
         }
-        .error-prompt-wrap {
-            margin-top: 0.25rem;
+        .error-prompt-items {
+            margin-top: 6px;
             color: #B91C1C;
+            font-size: 1.2rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .error-prompt-time {
+            margin-top: 4px;
+            color: #DC2626;
             font-size: 0.8rem;
-            line-height: 1.25rem;
+            font-weight: 500;
+            opacity: 0.8;
         }
 
         .edit-item-list { display: flex; flex-direction: column; gap: 10px; }
@@ -244,15 +250,16 @@
         </div>
     </div>
 
-    <!-- UIVERSE-STYLE NOTIFICATION -->
+    <!-- NOTIFICATION ALERT -->
     <div class="notifications-container" id="stockAlert">
         <div class="error-alert">
             <svg class="error-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
             <div class="error-prompt-container">
-                <span class="error-prompt-heading" id="alertHeading">Stock Depleted</span>
-                <span class="error-prompt-wrap" id="alertMessage"></span>
+                <span class="error-prompt-heading">Item Finished</span>
+                <span class="error-prompt-items" id="alertItems"></span>
+                <span class="error-prompt-time" id="alertTime"></span>
             </div>
         </div>
     </div>
@@ -296,22 +303,20 @@
         }
 
         function showStockAlert(items) {
-            // Clear any existing timer
             if (alertTimer) clearTimeout(alertTimer);
             
-            const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            const itemList = items.join(', ');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
-            document.getElementById('alertHeading').textContent = 'Stock Depleted';
-            document.getElementById('alertMessage').textContent = timeStr + ' · ' + itemList;
+            document.getElementById('alertItems').textContent = items.join('  ·  ');
+            document.getElementById('alertTime').textContent = 'Last updated: ' + timeStr;
             
             const alertEl = document.getElementById('stockAlert');
             alertEl.classList.add('show');
             
-            // Auto-hide after 3 seconds
             alertTimer = setTimeout(() => {
                 alertEl.classList.remove('show');
-            }, 3000);
+            }, 4000);
         }
 
         async function fetchData() {
