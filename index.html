@@ -71,51 +71,60 @@
         .add-item-row input.qty-input { flex: 1; min-width: 80px; text-align: center; font-weight: 700; font-size: 1.2rem; }
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
-        
-        /* MARQUEE ALERT BANNER */
-        .marquee-alert {
+
+        /* ========== NOTIFICATION ALERT (Uiverse.io Style) ========== */
+        .notifications-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 380px;
             z-index: 3000;
-            background: #1a1a1a;
-            color: white;
-            padding: 14px 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            overflow: hidden;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
             pointer-events: none;
         }
-        .marquee-track {
+        .notifications-container.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .error-alert {
+            border-radius: 0.5rem;
+            padding: 0.875rem 1rem;
+            background-color: rgb(254 242 242);
+            border: 1px solid rgb(252 165 165);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             display: flex;
-            align-items: center;
-            animation: marqueeSlide 8s linear forwards;
-            white-space: nowrap;
-            padding: 0 30px;
+            gap: 0.75rem;
+            align-items: flex-start;
         }
-        @keyframes marqueeSlide {
-            0% { transform: translateX(100%); }
-            12% { transform: translateX(0%); }
-            88% { transform: translateX(0%); }
-            100% { transform: translateX(-100%); }
-        }
-        .marquee-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #e74c3c;
-            margin-right: 12px;
+        .error-svg {
+            color: #F87171;
+            width: 1.25rem;
+            height: 1.25rem;
             flex-shrink: 0;
-            animation: marqueeDotPulse 1s infinite;
+            margin-top: 1px;
         }
-        @keyframes marqueeDotPulse {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.2; }
+        .error-prompt-container {
+            display: flex;
+            flex-direction: column;
         }
-        
+        .error-prompt-heading {
+            color: #991B1B;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 700;
+        }
+        .error-prompt-wrap {
+            margin-top: 0.25rem;
+            color: #B91C1C;
+            font-size: 0.8rem;
+            line-height: 1.25rem;
+        }
+
         .edit-item-list { display: flex; flex-direction: column; gap: 10px; }
         .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 18px 20px; border-radius: 18px; gap: 12px; cursor: pointer; border: 2px solid transparent; }
         .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
@@ -167,9 +176,6 @@
     </style>
 </head>
 <body>
-
-    <!-- MARQUEE ALERT CONTAINER -->
-    <div id="marqueeContainer"></div>
 
     <div class="topbar">
         <div class="topbar-left">
@@ -238,6 +244,19 @@
         </div>
     </div>
 
+    <!-- UIVERSE-STYLE NOTIFICATION -->
+    <div class="notifications-container" id="stockAlert">
+        <div class="error-alert">
+            <svg class="error-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+            <div class="error-prompt-container">
+                <span class="error-prompt-heading" id="alertHeading">Stock Depleted</span>
+                <span class="error-prompt-wrap" id="alertMessage"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -251,6 +270,7 @@
         let reminderInterval = null;
         let editingIndex = null;
         let lastSyncTime = null;
+        let alertTimer = null;
 
         function updateSyncStatus(status) {
             const badge = document.getElementById('syncBadge');
@@ -275,21 +295,23 @@
             }
         }
 
-        function showMarqueeAlert(items) {
+        function showStockAlert(items) {
+            // Clear any existing timer
+            if (alertTimer) clearTimeout(alertTimer);
+            
             const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            const itemList = items.join('  ·  ');
-            const html = `
-                <div class="marquee-alert">
-                    <div class="marquee-track">
-                        <span class="marquee-dot"></span>
-                        <span>STOCK OUT · ${timeStr} · ${itemList}</span>
-                    </div>
-                </div>
-            `;
-            document.getElementById('marqueeContainer').innerHTML = html;
-            setTimeout(() => {
-                document.getElementById('marqueeContainer').innerHTML = '';
-            }, 8500);
+            const itemList = items.join(', ');
+            
+            document.getElementById('alertHeading').textContent = 'Stock Depleted';
+            document.getElementById('alertMessage').textContent = timeStr + ' · ' + itemList;
+            
+            const alertEl = document.getElementById('stockAlert');
+            alertEl.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            alertTimer = setTimeout(() => {
+                alertEl.classList.remove('show');
+            }, 3000);
         }
 
         async function fetchData() {
@@ -302,7 +324,7 @@
                 const previousZeros = previousZeroItems;
                 const newZeros = currentZeros.filter(name => !previousZeros.includes(name));
                 if (newZeros.length > 0 && previousZeroItems.length > 0) {
-                    showMarqueeAlert(newZeros);
+                    showStockAlert(newZeros);
                 }
                 previousZeroItems = currentZeros;
                 stockData = newData;
@@ -415,10 +437,8 @@
         function startReminder() { stopReminder();
             reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playAlarm(); }, 60000);
             updateReminderMini(); }
-
         function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval);
                 reminderInterval = null; } }
-
         function playAlarm() {
             try { const ctx = new(window.AudioContext || window.webkitAudioContext)();
                 const beep = (f, d, del) => setTimeout(() => { const o = ctx.createOscillator(),
