@@ -72,7 +72,6 @@
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
 
-        /* ========== NOTIFICATION ALERT ========== */
         .notifications-container {
             position: fixed;
             top: 14px;
@@ -194,7 +193,6 @@
         </div>
     </div>
 
-    <!-- SYNC BUTTON -->
     <div style="display:flex;justify-content:center;align-items:center;padding:10px 20px;gap:10px;">
         <span id="syncBadge" style="display:inline-block;padding:7px 20px;border-radius:25px;font-size:0.75rem;font-weight:700;letter-spacing:0.5px;background:#eafaf1;color:#1e8449;transition:all 0.3s;">● SYNCED</span>
         <span id="lastUpdated" style="font-size:0.7rem;color:#999;">just now</span>
@@ -250,7 +248,6 @@
         </div>
     </div>
 
-    <!-- NOTIFICATION ALERT -->
     <div class="notifications-container" id="stockAlert">
         <div class="error-alert">
             <svg class="error-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -305,8 +302,10 @@
         function showStockAlert(items) {
             if (alertTimer) clearTimeout(alertTimer);
             
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            // Use lastSyncTime for the actual bin update time
+            const timeStr = lastSyncTime 
+                ? new Date(lastSyncTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
             document.getElementById('alertItems').textContent = items.join('  ·  ');
             document.getElementById('alertTime').textContent = 'Last updated: ' + timeStr;
@@ -328,12 +327,15 @@
                 const currentZeros = newData.filter(i => i.qty === 0).map(i => i.name);
                 const previousZeros = previousZeroItems;
                 const newZeros = currentZeros.filter(name => !previousZeros.includes(name));
+                
+                // Update time BEFORE showing alert so it reflects bin data time
+                lastSyncTime = Date.now();
+                
                 if (newZeros.length > 0 && previousZeroItems.length > 0) {
                     showStockAlert(newZeros);
                 }
                 previousZeroItems = currentZeros;
                 stockData = newData;
-                lastSyncTime = Date.now();
                 updateSyncStatus('synced');
                 renderAll();
             } catch (e) {
