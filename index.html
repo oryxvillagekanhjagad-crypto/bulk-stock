@@ -72,7 +72,6 @@
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
 
-        /* SYNC INFO BAR */
         .sync-info-bar {
             display: flex;
             align-items: center;
@@ -217,7 +216,6 @@
         </div>
     </div>
 
-    <!-- SYNC INFO BAR - Always visible -->
     <div class="sync-info-bar">
         <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● SYNCED</span>
         <span class="sync-time-text">Last updated: <strong id="lastUpdatedText" style="color:#666;">--:--</strong></span>
@@ -293,13 +291,13 @@
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
         let stockData = [];
-        let previousZeroItems = [];
         let reminderOn = true;
         let currentMode = 'edit';
         let reminderInterval = null;
         let editingIndex = null;
         let lastSyncTime = null;
         let alertTimer = null;
+        let todayDate = new Date().toDateString();
 
         function formatTime(timestamp) {
             if (!timestamp) return '--:--';
@@ -321,17 +319,16 @@
                 badge.style.background = '#fdedec';
                 badge.style.color = '#b03a2e';
             }
-            // Always show the last updated time
             document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime);
         }
 
-        function showStockAlert(items) {
+        function showStockAlert(items, zeroTime) {
             if (alertTimer) clearTimeout(alertTimer);
             
-            const timeStr = formatTime(lastSyncTime);
+            const timeStr = formatTime(zeroTime || Date.now());
             
             document.getElementById('alertItems').textContent = items.join('  ·  ');
-            document.getElementById('alertTime').textContent = 'Last updated: ' + timeStr;
+            document.getElementById('alertTime').textContent = 'Finished at: ' + timeStr;
             
             const alertEl = document.getElementById('stockAlert');
             alertEl.classList.add('show');
@@ -341,23 +338,66 @@
             }, 4000);
         }
 
+        // Check if it's a new day — reset all alerted flags
+        function checkNewDay() {
+            const today = new Date().toDateString();
+            if (today !== todayDate) {
+                // New day! Reset all alerted flags in the data
+                let changed = false;
+                stockData.forEach(item => {
+                    if (item.alerted) {
+                        delete item.alerted;
+                        changed = true;
+                    }
+                    if (item.zeroTime) {
+                        delete item.zeroTime;
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    saveAllSilent();
+                }
+                todayDate = today;
+            }
+        }
+
+        async function saveAllSilent() {
+            try {
+                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
+            } catch (e) {}
+        }
+
         async function fetchData() {
             try {
                 updateSyncStatus('syncing');
                 const res = await fetch(API_URL + '/latest');
                 const json = await res.json();
                 const newData = json.record || [];
-                const currentZeros = newData.filter(i => i.qty === 0).map(i => i.name);
-                const previousZeros = previousZeroItems;
-                const newZeros = currentZeros.filter(name => !previousZeros.includes(name));
                 
+                checkNewDay();
+                
+                // Find items that are zero but NOT yet alerted
+                const unalertedZeros = [];
+                newData.forEach(item => {
+                    if (item.qty === 0 && !item.alerted) {
+                        unalertedZeros.push(item.name);
+                        // Mark as alerted so no other phone shows popup again
+                        item.alerted = true;
+                        item.zeroTime = item.zeroTime || Date.now();
+                    }
+                });
+                
+                stockData = newData;
                 lastSyncTime = Date.now();
                 
-                if (newZeros.length > 0 && previousZeroItems.length > 0) {
-                    showStockAlert(newZeros);
+                if (unalertedZeros.length > 0) {
+                    // Save the alerted flags to bin immediately
+                    await saveAllSilent();
+                    // Show popup on THIS phone
+                    const zeroTime = newData.find(i => unalertedZeros.includes(i.name))?.zeroTime || Date.now();
+                    showStockAlert(unalertedZeros, zeroTime);
                 }
-                previousZeroItems = currentZeros;
-                stockData = newData;
+                
                 updateSyncStatus('synced');
                 renderAll();
             } catch (e) {
@@ -432,7 +472,18 @@
             editingIndex = null; }
         function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
         function saveQtyModal() { if (editingIndex === null) return;
-            stockData[editingIndex].qty = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
+            const newQty = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
+            // If changing to zero, remove alerted flag so popup can trigger
+            if (newQty === 0 && stockData[editingIndex].qty !== 0) {
+                stockData[editingIndex].alerted = false;
+                stockData[editingIndex].zeroTime = Date.now();
+            }
+            // If changing from zero to something else, remove flags
+            if (newQty > 0) {
+                delete stockData[editingIndex].alerted;
+                delete stockData[editingIndex].zeroTime;
+            }
+            stockData[editingIndex].qty = newQty;
             saveAll();
             closeQtyModal(); }
 
@@ -447,6 +498,10 @@
 
         function addItem() { const n = document.getElementById('newItemName').value.trim(); const q = parseInt(document.getElementById('newItemQty').value) || 0; if (!n) { showToast('⚠️ Enter item name'); return; } if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
             stockData.push({ name: n, qty: Math.max(0, q) });
+            if (q === 0) {
+                stockData[stockData.length-1].alerted = true;
+                stockData[stockData.length-1].zeroTime = Date.now();
+            }
             saveAll();
             document.getElementById('newItemName').value = '';
             document.getElementById('newItemQty').value = '10';
@@ -507,7 +562,6 @@
             document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
             document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
             await fetchData();
-            previousZeroItems = stockData.filter(i => i.qty === 0).map(i => i.name);
             if (reminderOn) startReminder();
             setInterval(fetchData, 10000);
         }
