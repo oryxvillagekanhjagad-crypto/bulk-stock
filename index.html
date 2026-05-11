@@ -72,6 +72,30 @@
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
 
+        /* SYNC INFO BAR */
+        .sync-info-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 10px 20px;
+            flex-wrap: wrap;
+        }
+        .sync-badge {
+            display: inline-block;
+            padding: 7px 18px;
+            border-radius: 25px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .sync-time-text {
+            font-size: 0.7rem;
+            color: #999;
+            font-weight: 500;
+        }
+
         .notifications-container {
             position: fixed;
             top: 14px;
@@ -193,9 +217,10 @@
         </div>
     </div>
 
-    <div style="display:flex;justify-content:center;align-items:center;padding:10px 20px;gap:10px;">
-        <span id="syncBadge" style="display:inline-block;padding:7px 20px;border-radius:25px;font-size:0.75rem;font-weight:700;letter-spacing:0.5px;background:#eafaf1;color:#1e8449;transition:all 0.3s;">● SYNCED</span>
-        <span id="lastUpdated" style="font-size:0.7rem;color:#999;">just now</span>
+    <!-- SYNC INFO BAR - Always visible -->
+    <div class="sync-info-bar">
+        <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● SYNCED</span>
+        <span class="sync-time-text">Last updated: <strong id="lastUpdatedText" style="color:#666;">--:--</strong></span>
     </div>
 
     <div class="search-bar">
@@ -276,6 +301,11 @@
         let lastSyncTime = null;
         let alertTimer = null;
 
+        function formatTime(timestamp) {
+            if (!timestamp) return '--:--';
+            return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function updateSyncStatus(status) {
             const badge = document.getElementById('syncBadge');
             if (status === 'syncing') {
@@ -291,21 +321,14 @@
                 badge.style.background = '#fdedec';
                 badge.style.color = '#b03a2e';
             }
-            if (lastSyncTime) {
-                const seconds = Math.floor((Date.now() - lastSyncTime) / 1000);
-                if (seconds < 10) document.getElementById('lastUpdated').textContent = 'just now';
-                else if (seconds < 60) document.getElementById('lastUpdated').textContent = seconds + 's ago';
-                else document.getElementById('lastUpdated').textContent = Math.floor(seconds / 60) + 'm ago';
-            }
+            // Always show the last updated time
+            document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime);
         }
 
         function showStockAlert(items) {
             if (alertTimer) clearTimeout(alertTimer);
             
-            // Use lastSyncTime for the actual bin update time
-            const timeStr = lastSyncTime 
-                ? new Date(lastSyncTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const timeStr = formatTime(lastSyncTime);
             
             document.getElementById('alertItems').textContent = items.join('  ·  ');
             document.getElementById('alertTime').textContent = 'Last updated: ' + timeStr;
@@ -328,7 +351,6 @@
                 const previousZeros = previousZeroItems;
                 const newZeros = currentZeros.filter(name => !previousZeros.includes(name));
                 
-                // Update time BEFORE showing alert so it reflects bin data time
                 lastSyncTime = Date.now();
                 
                 if (newZeros.length > 0 && previousZeroItems.length > 0) {
