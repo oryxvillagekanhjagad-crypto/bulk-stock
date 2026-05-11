@@ -70,9 +70,30 @@
         .add-item-row input.qty-input { flex: 1; min-width: 80px; text-align: center; font-weight: 700; font-size: 1.2rem; }
         .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .add-btn:active { transform: scale(0.9); background: #444; }
-        .sync-indicator { text-align: center; font-size: 0.75rem; color: #999; margin-bottom: 8px; }
-        .sync-indicator.syncing { color: #f39c12; }
-        .sync-indicator.synced { color: #2ecc71; }
+        
+        /* SYNC STATUS BAR */
+        .sync-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+        .sync-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .sync-dot.synced { background: #2ecc71; }
+        .sync-dot.syncing { background: #f39c12; animation: pulse 1s infinite; }
+        .sync-dot.error { background: #e74c3c; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .last-updated { color: #999; }
+        
         .edit-item-list { display: flex; flex-direction: column; gap: 10px; }
         .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 18px 20px; border-radius: 18px; gap: 12px; cursor: pointer; border: 2px solid transparent; }
         .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
@@ -94,7 +115,6 @@
         .pill.orange { background:#fef9e7; color:#b7950b; }
         .pill.red { background:#fdedec; color:#b03a2e; }
         .reminder-toggle-view { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; background: var(--card-bg); padding: 12px 20px; border-radius: 30px; cursor: pointer; }
-        .reminder-toggle-view:active { border-color: #1a1a1a; transform: scale(0.96); }
         .view-item-list { display: flex; flex-direction: column; gap: 10px; }
         .view-item-card { display: flex; align-items: center; justify-content: space-between; padding: 22px 20px; border-radius: 18px; font-weight: 700; font-size: 1.15rem; background: var(--card-bg); border-left: 8px solid transparent; }
         .view-item-card.hidden-by-search { display: none; }
@@ -122,6 +142,47 @@
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 28px; border-radius: 35px; font-size: 1rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
         .reminder-mini { font-size: 0.9rem; color: var(--subtext); text-align: center; padding: 16px 0; font-weight: 600; }
+        
+        /* ZERO ALERT POPUP */
+        .zero-alert-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .zero-alert-box {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 24px;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            border: 4px solid var(--red);
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .zero-alert-box .alert-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        .zero-alert-box .alert-title { font-size: 1.4rem; font-weight: 800; color: var(--red); margin-bottom: 8px; }
+        .zero-alert-box .alert-subtitle { font-size: 0.85rem; color: #999; margin-bottom: 6px; }
+        .zero-alert-box .alert-items { font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 20px; line-height: 1.6; }
+        .zero-alert-box .alert-btn {
+            padding: 16px 40px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .zero-alert-box .alert-btn:active { transform: scale(0.94); background: #c0392b; }
     </style>
 </head>
 <body>
@@ -137,6 +198,13 @@
         </div>
     </div>
 
+    <!-- SYNC STATUS BAR -->
+    <div class="sync-status-bar" id="syncStatusBar">
+        <span class="sync-dot synced" id="syncDot"></span>
+        <span id="syncText">● Synced</span>
+        <span class="last-updated" id="lastUpdated">just now</span>
+    </div>
+
     <div class="search-bar">
         <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
@@ -146,7 +214,6 @@
     </div>
 
     <div class="main-content">
-        <div class="sync-indicator" id="syncIndicator">● Ready</div>
         <div class="section visible" id="editSection">
             <div class="add-item-row">
                 <input type="text" id="newItemName" class="name-input" placeholder="Item name..." autocomplete="off">
@@ -188,6 +255,17 @@
         </div>
     </div>
 
+    <!-- ZERO STOCK ALERT -->
+    <div class="zero-alert-overlay" id="zeroAlert" style="display:none;">
+        <div class="zero-alert-box">
+            <span class="alert-icon">🚨</span>
+            <div class="alert-title">ITEMS FINISHED!</div>
+            <div class="alert-subtitle" id="zeroAlertTime"></div>
+            <div class="alert-items" id="zeroAlertItems"></div>
+            <button class="alert-btn" onclick="dismissZeroAlert()">OK, NOTED</button>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -195,74 +273,116 @@
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
         let stockData = [];
+        let previousZeroItems = [];
         let reminderOn = true;
         let currentMode = 'edit';
         let reminderInterval = null;
         let editingIndex = null;
+        let lastSyncTime = null;
 
-        function setSyncStatus(s) {
-            const el = document.getElementById('syncIndicator');
-            el.className = 'sync-indicator ' + s;
-            el.textContent = s === 'syncing' ? '⟳ Syncing...' : s === 'synced' ? '● Synced' : '● Ready';
+        function updateSyncStatus(status) {
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncText');
+            dot.className = 'sync-dot ' + status;
+            if (status === 'syncing') text.textContent = '⟳ Syncing...';
+            else if (status === 'synced') text.textContent = '● Synced';
+            else text.textContent = '● Error';
+            
+            if (lastSyncTime) {
+                const seconds = Math.floor((Date.now() - lastSyncTime) / 1000);
+                if (seconds < 10) document.getElementById('lastUpdated').textContent = 'just now';
+                else if (seconds < 60) document.getElementById('lastUpdated').textContent = seconds + 's ago';
+                else document.getElementById('lastUpdated').textContent = Math.floor(seconds / 60) + 'm ago';
+            }
         }
 
         async function fetchData() {
             try {
-                setSyncStatus('syncing');
+                updateSyncStatus('syncing');
                 const res = await fetch(API_URL + '/latest');
                 const json = await res.json();
-                stockData = json.record || [];
-                setSyncStatus('synced');
+                const newData = json.record || [];
+                
+                // Check for newly zeroed items
+                const currentZeros = newData.filter(i => i.qty === 0).map(i => i.name);
+                const previousZeros = previousZeroItems;
+                const newZeros = currentZeros.filter(name => !previousZeros.includes(name));
+                
+                if (newZeros.length > 0 && previousZeroItems.length > 0) {
+                    // Only show alert if we have previous data (not first load)
+                    showZeroAlert(newZeros);
+                }
+                
+                previousZeroItems = currentZeros;
+                stockData = newData;
+                lastSyncTime = Date.now();
+                updateSyncStatus('synced');
                 renderAll();
             } catch (e) {
-                setSyncStatus('');
-                showToast('⚠️ Connection error');
+                updateSyncStatus('error');
             }
         }
 
-        async function saveAll() {
+        function showZeroAlert(items) {
+            // Show sync time
+            const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('zeroAlertTime').textContent = 'Finished at: ' + timeStr;
+            document.getElementById('zeroAlertItems').innerHTML = items.map(i => '⚠️ ' + i).join('<br>');
+            document.getElementById('zeroAlert').style.display = 'flex';
+            
+            // Sound alarm
             try {
-                setSyncStatus('syncing');
-                await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(stockData)
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const beep = (f, d, del) => setTimeout(() => {
+                    const o = ctx.createOscillator(), g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.frequency.value = f; o.type = 'square'; g.gain.value = 0.3;
+                    o.start(); o.stop(ctx.currentTime + d);
+                }, del);
+                beep(660, 0.2, 0); beep(660, 0.2, 250); beep(660, 0.2, 500); beep(880, 0.5, 750);
+            } catch(e) {}
+            
+            if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
+            
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🚨 ITEMS FINISHED!', {
+                    body: items.join(', ') + ' — just hit zero!',
+                    tag: 'zero-stock',
+                    requireInteraction: true
                 });
-                setSyncStatus('synced');
-            } catch (e) {
-                showToast('⚠️ Save failed');
-                setSyncStatus('');
             }
+        }
+
+        function dismissZeroAlert() {
+            document.getElementById('zeroAlert').style.display = 'none';
         }
 
         function getStatus(qty) { if (qty === 0) return 'red'; if (qty <= 5) return 'orange'; return 'green'; }
-        function showToast(msg) { const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            clearTimeout(t._t);
-            t._t = setTimeout(() => t.classList.remove('show'), 1800); }
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
+        }
 
         function escapeHTML(s) { const d = document.createElement('div');
             d.textContent = s; return d.innerHTML; }
 
         function getSearchTerm() { return document.getElementById('searchInput').value.trim().toLowerCase(); }
-
         function filterItems() { document.getElementById('clearSearchBtn').classList.toggle('visible', getSearchTerm().length > 0);
             applySearchFilter(); }
-
         function clearSearch() { document.getElementById('searchInput').value = '';
             document.getElementById('clearSearchBtn').classList.remove('visible');
-            applySearchFilter();
-            document.getElementById('searchInput').focus(); }
+            applySearchFilter(); }
 
         function applySearchFilter() {
             const term = getSearchTerm();
-            document.querySelectorAll('#editItemList .edit-item-card').forEach(c => { const n = c.querySelector('.item-name-edit')
-                    .textContent.toLowerCase();
-                c.classList.toggle('hidden-by-search', term !== '' && !n.includes(term)); });
-            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => { const n = c.querySelector('span').textContent
-                    .toLowerCase();
-                c.classList.toggle('hidden-by-search', term !== '' && !n.includes(term)); });
+            document.querySelectorAll('#editItemList .edit-item-card').forEach(c => {
+                c.classList.toggle('hidden-by-search', term !== '' && !c.querySelector('.item-name-edit').textContent.toLowerCase().includes(term));
+            });
+            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => {
+                c.classList.toggle('hidden-by-search', term !== '' && !c.querySelector('span').textContent.toLowerCase().includes(term));
+            });
         }
 
         function renderEdit() {
@@ -271,8 +391,10 @@
             if (stockData.length === 0) { list.innerHTML = '';
                 empty.style.display = 'block'; return; }
             empty.style.display = 'none';
-            list.innerHTML = stockData.map((item, idx) => { const s = getStatus(item.qty); return `<div class="edit-item-card" onclick="openQtyModal(${idx})"><span class="item-name-edit">${escapeHTML(item.name)}</span><span class="qty-badge-edit ${s}">${item.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${idx})">🗑️</button></div>`; }).join(
-                '');
+            list.innerHTML = stockData.map((item, idx) => {
+                const s = getStatus(item.qty);
+                return `<div class="edit-item-card" onclick="openQtyModal(${idx})"><span class="item-name-edit">${escapeHTML(item.name)}</span><span class="qty-badge-edit ${s}">${item.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${idx})">🗑️</button></div>`;
+            }).join('');
             applySearchFilter();
         }
 
@@ -283,116 +405,145 @@
                 empty.style.display = 'block';
                 updatePills(); return; }
             empty.style.display = 'none';
-            const sorted = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (
-                    o[getStatus(b.qty)] || 0); });
-            list.innerHTML = sorted.map(item => { const s = getStatus(item.qty); return `<div class="view-item-card status-${s}"><span>${escapeHTML(item.name)}</span><span class="view-qty-badge ${s}">${item.qty}</span></div>`; }).join(
-                '');
+            const sorted = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
+            list.innerHTML = sorted.map(item => {
+                const s = getStatus(item.qty);
+                return `<div class="view-item-card status-${s}"><span>${escapeHTML(item.name)}</span><span class="view-qty-badge ${s}">${item.qty}</span></div>`;
+            }).join('');
             updatePills();
             updateReminderMini();
             applySearchFilter();
         }
 
-        function updatePills() { let total = 0,
-                g = 0,
-                o = 0,
-                r = 0;
-            stockData.forEach(item => { total += item.qty; const s = getStatus(item.qty); if (s === 'green') g++; if (s ===
-                    'orange') o++; if (s === 'red') r++; });
+        function updatePills() {
+            let total = 0, g = 0, o = 0, r = 0;
+            stockData.forEach(item => { total += item.qty; const s = getStatus(item.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
             document.getElementById('pillTotal').textContent = 'Total: ' + total;
             document.getElementById('pillGreen').textContent = '● ' + g;
             document.getElementById('pillOrange').textContent = '● ' + o;
-            document.getElementById('pillRed').textContent = '● ' + r; }
+            document.getElementById('pillRed').textContent = '● ' + r;
+        }
 
         function renderAll() { renderEdit();
             renderView(); }
 
-        function openQtyModal(idx) { editingIndex = idx;
+        function openQtyModal(idx) {
+            editingIndex = idx;
             document.getElementById('modalSubtitle').textContent = stockData[idx].name;
             document.getElementById('modalInput').value = stockData[idx].qty;
             document.getElementById('qtyModal').style.display = 'flex';
             setTimeout(() => { document.getElementById('modalInput').focus();
-                document.getElementById('modalInput').select(); }, 150); }
+                document.getElementById('modalInput').select(); }, 150);
+        }
 
         function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none';
             editingIndex = null; }
-
         function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
 
-        function saveQtyModal() { if (editingIndex === null) return;
+        function saveQtyModal() {
+            if (editingIndex === null) return;
             stockData[editingIndex].qty = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
             saveAll();
             showToast('✅ Updated');
-            closeQtyModal(); }
+            closeQtyModal();
+        }
 
-        function addItem() { const n = document.getElementById('newItemName').value.trim(); const q = parseInt(document.getElementById(
-                'newItemQty').value) || 0; if (!n) { showToast('⚠️ Enter item name'); return; } if (stockData.some(i => i.name
-                .toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
+        async function saveAll() {
+            try {
+                updateSyncStatus('syncing');
+                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
+                lastSyncTime = Date.now();
+                updateSyncStatus('synced');
+            } catch (e) { showToast('⚠️ Save failed'); }
+        }
+
+        function addItem() {
+            const n = document.getElementById('newItemName').value.trim();
+            const q = parseInt(document.getElementById('newItemQty').value) || 0;
+            if (!n) { showToast('⚠️ Enter item name'); return; }
+            if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
             stockData.push({ name: n, qty: Math.max(0, q) });
             saveAll();
             document.getElementById('newItemName').value = '';
             document.getElementById('newItemQty').value = '10';
             document.getElementById('newItemName').focus();
-            showToast('✅ Added: ' + n); }
+        }
 
-        function deleteItem(e, idx) { e.stopPropagation(); const n = stockData[idx].name;
+        function deleteItem(e, idx) { e.stopPropagation();
             stockData.splice(idx, 1);
-            saveAll();
-            showToast('🗑️ Removed: ' + n); }
+            saveAll(); }
 
-        function switchMode(m) { currentMode = m;
+        function switchMode(m) {
+            currentMode = m;
             document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
             document.getElementById('btnView').classList.toggle('active', m === 'view');
             document.getElementById('editSection').classList.toggle('visible', m === 'edit');
             document.getElementById('viewSection').classList.toggle('visible', m === 'view');
-            renderAll(); }
+            renderAll();
+        }
 
-        function playAlarm() { try { const ctx = new(window.AudioContext || window.webkitAudioContext)(); const beep = (f, d,
-                del) => setTimeout(() => { const o = ctx.createOscillator(),
-                    g = ctx.createGain();
-                o.connect(g);
-                g.connect(ctx.destination);
-                o.frequency.value = f;
-                o.type = 'square';
-                g.gain.value = 0.3;
-                o.start();
-                o.stop(ctx.currentTime + d); }, del);
-            beep(880, 0.15, 0);
-            beep(880, 0.15, 200);
-            beep(880, 0.15, 400); } catch (e) {} if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]); }
+        function playAlarm() {
+            try { const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const beep = (f, d, del) => setTimeout(() => { const o = ctx.createOscillator(),
+                        g = ctx.createGain();
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.frequency.value = f;
+                    o.type = 'square';
+                    g.gain.value = 0.3;
+                    o.start();
+                    o.stop(ctx.currentTime + d); }, del);
+                beep(880, 0.15, 0);
+                beep(880, 0.15, 200);
+                beep(880, 0.15, 400); } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+        }
 
         function startReminder() { stopReminder();
-            reminderInterval = setInterval(() => { const h = new Date().getHours(); if (h >= 19 && h <= 23) playAlarm(); if (
-                    currentMode === 'view') updateReminderMini(); }, 60000);
+            reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playAlarm(); }, 60000);
             updateReminderMini(); }
 
         function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval);
                 reminderInterval = null; } }
 
-        function toggleReminderView() { reminderOn = !reminderOn;
+        function toggleReminderView() {
+            reminderOn = !reminderOn;
             localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
             reminderOn ? startReminder() : stopReminder();
             document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF'; }
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
+        }
 
-        function updateReminderMini() { const el = document.getElementById('nextReminderMini'); if (!reminderOn) { el.textContent =
-                '🔕 Reminder OFF'; return; } const h = new Date().getHours(); let next; if (h < 19) next = '7:00 PM'; else if (h >=
-                23) next = 'Tomorrow 7:00 PM'; else { const nh = h + 1;
-            next = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
-            el.textContent = '⏰ Next alert: ' + next; }
+        function updateReminderMini() {
+            const el = document.getElementById('nextReminderMini');
+            if (!reminderOn) { el.textContent = '🔕 Reminder OFF'; return; }
+            const h = new Date().getHours();
+            let next;
+            if (h < 19) next = '7:00 PM';
+            else if (h >= 23) next = 'Tomorrow 7:00 PM';
+            else { const nh = h + 1;
+                next = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
+            el.textContent = '⏰ Next alert: ' + next;
+        }
 
-        document.addEventListener('keydown', function(e) { if (document.getElementById('qtyModal').style.display === 'flex') { if (e
-                    .key === 'Enter') { e.preventDefault();
-                saveQtyModal(); } if (e.key === 'Escape') closeQtyModal(); } });
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('qtyModal').style.display === 'flex') {
+                if (e.key === 'Enter') { e.preventDefault();
+                    saveQtyModal(); }
+                if (e.key === 'Escape') closeQtyModal();
+            }
+        });
         document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
         document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
 
         async function init() {
-            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short',
-                month: 'short', day: 'numeric' });
+            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
             reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
             document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
             document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
             await fetchData();
+            previousZeroItems = stockData.filter(i => i.qty === 0).map(i => i.name);
             if (reminderOn) startReminder();
             setInterval(fetchData, 10000);
         }
