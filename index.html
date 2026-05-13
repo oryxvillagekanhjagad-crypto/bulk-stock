@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Bulk Stock</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <style>
         :root {
             --green: #2ecc71;
@@ -42,183 +47,150 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 20px 16px 20px;
+            padding: 18px 20px 14px 20px;
             background: var(--bg);
             position: sticky;
             top: 0;
             z-index: 100;
             border-bottom: 2px solid var(--border);
         }
-        .topbar-left .title { font-size: 1.6rem; font-weight: 800; }
-        .topbar-left .date { font-size: 0.95rem; color: var(--subtext); font-weight: 500; }
-        .mode-switch { display: flex; gap: 6px; background: #f1f3f5; border-radius: 35px; padding: 5px; }
-        .mode-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: transparent; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .topbar-left .title { font-size: 1.5rem; font-weight: 800; }
+        .topbar-left .date { font-size: 0.85rem; color: var(--subtext); font-weight: 500; }
+        .mode-switch { display: flex; gap: 6px; background: #f1f3f5; border-radius: 30px; padding: 4px; }
+        .mode-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: transparent; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .mode-btn.active { background: #1a1a1a; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .search-bar { padding: 12px 20px; position: sticky; top: 97px; z-index: 99; background: var(--bg); }
-        .search-input-wrap { display: flex; align-items: center; background: var(--card-bg); border-radius: 16px; padding: 4px 16px; border: 2px solid var(--border); }
+        .search-bar { padding: 10px 20px; position: sticky; top: 85px; z-index: 99; background: var(--bg); }
+        .search-input-wrap { display: flex; align-items: center; background: var(--card-bg); border-radius: 14px; padding: 4px 14px; border: 2px solid var(--border); }
         .search-input-wrap:focus-within { border-color: #1a1a1a; }
-        .search-icon { font-size: 1.4rem; margin-right: 8px; }
-        .search-input-wrap input { flex: 1; padding: 16px 0; border: none; background: transparent; font-size: 1.1rem; font-weight: 500; outline: none; }
-        .clear-search { width: 36px; height: 36px; border-radius: 50%; border: none; background: #ddd; font-size: 1.1rem; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .search-icon { font-size: 1.3rem; margin-right: 8px; }
+        .search-input-wrap input { flex: 1; padding: 14px 0; border: none; background: transparent; font-size: 1rem; font-weight: 500; outline: none; }
+        .clear-search { width: 32px; height: 32px; border-radius: 50%; border: none; background: #ddd; font-size: 1rem; cursor: pointer; display: none; align-items: center; justify-content: center; }
         .clear-search.visible { display: flex; }
-        .main-content { padding: 8px 20px 120px 20px; }
+        .main-content { padding: 8px 20px 100px 20px; }
         .section { display: none; }
         .section.visible { display: block; }
-        .add-item-row { display: flex; gap: 10px; margin-bottom: 20px; background: var(--card-bg); padding: 14px; border-radius: 20px; }
-        .add-item-row input { padding: 16px 18px; border: 2px solid var(--border); border-radius: 16px; font-size: 1.1rem; background: white; outline: none; font-weight: 500; }
+        .add-item-row { display: flex; gap: 10px; margin-bottom: 20px; background: var(--card-bg); padding: 12px; border-radius: 18px; }
+        .add-item-row input { padding: 14px 16px; border: 2px solid var(--border); border-radius: 14px; font-size: 1rem; background: white; outline: none; font-weight: 500; }
         .add-item-row input:focus { border-color: #1a1a1a; }
-        .add-item-row input.name-input { flex: 2; min-width: 140px; }
-        .add-item-row input.qty-input { flex: 1; min-width: 80px; text-align: center; font-weight: 700; font-size: 1.2rem; }
-        .add-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .add-item-row input.name-input { flex: 2; min-width: 130px; }
+        .add-item-row input.qty-input { flex: 1; min-width: 70px; text-align: center; font-weight: 700; font-size: 1.1rem; }
+        .add-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.9); background: #444; }
 
         .sync-info-bar {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            padding: 10px 20px;
+            gap: 14px;
+            padding: 8px 20px;
             flex-wrap: wrap;
         }
         .sync-badge {
             display: inline-block;
-            padding: 7px 18px;
-            border-radius: 25px;
-            font-size: 0.75rem;
+            padding: 6px 16px;
+            border-radius: 22px;
+            font-size: 0.7rem;
             font-weight: 700;
             letter-spacing: 0.5px;
             transition: all 0.3s;
         }
-        .sync-time-text {
-            font-size: 0.7rem;
-            color: #999;
-            font-weight: 500;
-        }
+        .sync-time-text { font-size: 0.7rem; color: #999; font-weight: 500; }
 
-        /* NOTIFICATION POPUPS */
         .notifications-container {
             position: fixed;
             top: 14px;
             left: 50%;
             transform: translateX(-50%);
             width: 92%;
-            max-width: 400px;
+            max-width: 380px;
             z-index: 3000;
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
         }
-        .notifications-container.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .error-alert {
+        .notifications-container.show { opacity: 1; pointer-events: auto; }
+        .error-alert, .update-alert {
             border-radius: 12px;
-            padding: 16px;
-            background-color: #fef2f2;
-            border: 2px solid #fca5a5;
+            padding: 14px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.12);
             display: flex;
-            gap: 14px;
+            gap: 12px;
             align-items: flex-start;
         }
-        .update-alert {
-            border-radius: 12px;
-            padding: 16px;
-            background-color: #eff6ff;
-            border: 2px solid #93c5fd;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-        }
-        .alert-svg {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
+        .error-alert { background-color: #fef2f2; border: 2px solid #fca5a5; }
+        .update-alert { background-color: #eff6ff; border: 2px solid #93c5fd; }
+        .alert-svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
         .alert-svg.red { color: #F87171; }
         .alert-svg.blue { color: #3b82f6; }
-        .alert-prompt-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-        .alert-prompt-heading {
-            font-size: 1rem;
-            font-weight: 800;
-        }
-        .alert-prompt-heading.red { color: #991B1B; }
-        .alert-prompt-heading.blue { color: #1e40af; }
-        .alert-prompt-items {
-            margin-top: 6px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            line-height: 1.4;
-        }
-        .alert-prompt-items.red { color: #B91C1C; }
-        .alert-prompt-items.blue { color: #1d4ed8; }
-        .alert-prompt-time {
-            margin-top: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            opacity: 0.8;
-        }
-        .alert-prompt-time.red { color: #DC2626; }
-        .alert-prompt-time.blue { color: #2563eb; }
+        .alert-content { display: flex; flex-direction: column; flex: 1; }
+        .alert-heading { font-size: 0.95rem; font-weight: 800; }
+        .alert-heading.red { color: #991B1B; }
+        .alert-heading.blue { color: #1e40af; }
+        .alert-body { margin-top: 4px; font-size: 1.1rem; font-weight: 700; line-height: 1.4; }
+        .alert-body.red { color: #B91C1C; }
+        .alert-body.blue { color: #1d4ed8; }
+        .alert-time { margin-top: 3px; font-size: 0.75rem; font-weight: 500; opacity: 0.8; }
+        .alert-time.red { color: #DC2626; }
+        .alert-time.blue { color: #2563eb; }
 
-        .edit-item-list { display: flex; flex-direction: column; gap: 10px; }
-        .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 18px 20px; border-radius: 18px; gap: 12px; cursor: pointer; border: 2px solid transparent; }
+        .edit-item-list { display: flex; flex-direction: column; gap: 8px; }
+        .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 16px 18px; border-radius: 16px; gap: 10px; cursor: pointer; border: 2px solid transparent; }
         .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
         .edit-item-card.hidden-by-search { display: none; }
-        .edit-item-card .item-name-edit { flex: 1; font-size: 1.15rem; font-weight: 600; word-break: break-word; }
-        .edit-item-card .qty-badge-edit { font-size: 1.5rem; font-weight: 800; min-width: 50px; text-align: center; padding: 8px 16px; border-radius: 30px; background: white; }
+        .edit-item-card .item-name-edit { flex: 1; font-size: 1.05rem; font-weight: 600; word-break: break-word; }
+        .edit-item-card .qty-badge-edit { font-size: 1.3rem; font-weight: 800; min-width: 44px; text-align: center; padding: 6px 14px; border-radius: 25px; background: white; }
         .edit-item-card .qty-badge-edit.green { color:#1e8449; background:#eafaf1; }
         .edit-item-card .qty-badge-edit.orange { color:#b7950b; background:#fef9e7; }
         .edit-item-card .qty-badge-edit.red { color:#b03a2e; background:#fdedec; }
-        .delete-btn-edit { width: 44px; height: 44px; border-radius: 50%; border: none; background: transparent; color: #ccc; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .delete-btn-edit { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: #ccc; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .delete-btn-edit:active { color: var(--red); background: #fee; }
         .no-search-results { text-align: center; padding: 40px 20px; color: #bbb; font-size: 1rem; font-weight: 600; display: none; }
         .no-search-results.visible { display: block; }
-        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-        .summary-pills { display: flex; gap: 10px; flex-wrap: wrap; }
-        .pill { padding: 10px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .summary-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill { padding: 8px 16px; border-radius: 25px; font-size: 0.85rem; font-weight: 700; }
         .pill.total { background:#ebf5fb; color:#2471a3; }
         .pill.green { background:#eafaf1; color:#1e8449; }
         .pill.orange { background:#fef9e7; color:#b7950b; }
         .pill.red { background:#fdedec; color:#b03a2e; }
-        .reminder-toggle-view { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; background: var(--card-bg); padding: 12px 20px; border-radius: 30px; cursor: pointer; }
-        .view-item-list { display: flex; flex-direction: column; gap: 10px; }
-        .view-item-card { display: flex; align-items: center; justify-content: space-between; padding: 22px 20px; border-radius: 18px; font-weight: 700; font-size: 1.15rem; background: var(--card-bg); border-left: 8px solid transparent; }
+        .reminder-toggle-view { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; background: var(--card-bg); padding: 10px 18px; border-radius: 25px; cursor: pointer; }
+        .view-item-list { display: flex; flex-direction: column; gap: 8px; }
+        .view-item-card { display: flex; align-items: center; justify-content: space-between; padding: 20px 18px; border-radius: 16px; font-weight: 700; font-size: 1.05rem; background: var(--card-bg); border-left: 7px solid transparent; }
         .view-item-card.hidden-by-search { display: none; }
         .view-item-card.status-green { border-left-color: var(--green); background:#f9fdf9; }
         .view-item-card.status-orange { border-left-color: var(--orange); background:#fffdf7; }
         .view-item-card.status-red { border-left-color: var(--red); background:#fefafa; opacity: 0.65; text-decoration: line-through; text-decoration-color: #ccc; color: #999; }
-        .view-qty-badge { font-size: 1.6rem; font-weight: 900; min-width: 55px; text-align: center; padding: 6px 16px; border-radius: 30px; }
+        .view-qty-badge { font-size: 1.4rem; font-weight: 900; min-width: 48px; text-align: center; padding: 5px 14px; border-radius: 25px; }
         .view-qty-badge.green { color:#1e8449; background:#eafaf1; }
         .view-qty-badge.orange { color:#b7950b; background:#fef9e7; }
         .view-qty-badge.red { color:#b03a2e; background:#fdedec; }
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; }
-        .modal-box { background: white; border-radius: 28px; padding: 30px 24px; width: 90%; max-width: 400px; text-align: center; }
-        .modal-box .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
-        .modal-box .modal-subtitle { font-size: 0.9rem; color: var(--subtext); margin-bottom: 20px; }
-        .modal-box input { width: 100%; padding: 20px; font-size: 2rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 20px; outline: none; margin-bottom: 20px; background: var(--card-bg); }
+        .modal-box { background: white; border-radius: 24px; padding: 28px 22px; width: 90%; max-width: 380px; text-align: center; }
+        .modal-box .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+        .modal-box .modal-subtitle { font-size: 0.85rem; color: var(--subtext); margin-bottom: 18px; }
+        .modal-box input { width: 100%; padding: 18px; font-size: 1.8rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 18px; outline: none; margin-bottom: 18px; background: var(--card-bg); }
         .modal-box input:focus { border-color: #1a1a1a; }
-        .modal-buttons { display: flex; gap: 12px; }
-        .modal-btn { flex: 1; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 50px; border: none; cursor: pointer; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 40px; border: none; cursor: pointer; }
         .modal-btn:active { transform: scale(0.94); }
         .modal-btn.cancel { background:#f1f3f5; color:#666; }
         .modal-btn.save { background:#1a1a1a; color:white; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #bbb; }
-        .empty-state .big-icon { font-size: 5rem; display: block; margin-bottom: 16px; }
-        .empty-state p { font-size: 1.1rem; font-weight: 500; }
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 28px; border-radius: 35px; font-size: 1rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .empty-state { text-align: center; padding: 50px 20px; color: #bbb; }
+        .empty-state .big-icon { font-size: 4rem; display: block; margin-bottom: 12px; }
+        .empty-state p { font-size: 1rem; font-weight: 500; }
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
-        .reminder-mini { font-size: 0.9rem; color: var(--subtext); text-align: center; padding: 16px 0; font-weight: 600; }
+        .reminder-mini { font-size: 0.8rem; color: var(--subtext); text-align: center; padding: 14px 0; font-weight: 600; }
+        .install-banner { display: none; background: #1a1a1a; color: white; text-align: center; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .install-banner.show { display: block; }
     </style>
 </head>
 <body>
+
+    <!-- INSTALL BANNER -->
+    <div class="install-banner" id="installBanner" onclick="installApp()">
+        📲 Tap here to install app for notifications
+    </div>
 
     <div class="topbar">
         <div class="topbar-left">
@@ -233,7 +205,7 @@
 
     <div class="sync-info-bar">
         <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● LIVE</span>
-        <span class="sync-time-text">Last updated: <strong id="lastUpdatedText" style="color:#666;">--:--</strong></span>
+        <span class="sync-time-text">Updated: <strong id="lastUpdatedText" style="color:#666;">--:--</strong></span>
     </div>
 
     <div class="search-bar">
@@ -252,8 +224,8 @@
                 <button class="add-btn" onclick="addItem()">+</button>
             </div>
             <div class="edit-item-list" id="editItemList"></div>
-            <div class="no-search-results" id="editNoResults">🔍 No matching items found.</div>
-            <div class="empty-state" id="editEmpty" style="display:none;"><span class="big-icon">📝</span><p>No items yet.</p></div>
+            <div class="no-search-results" id="editNoResults">🔍 No items found</div>
+            <div class="empty-state" id="editEmpty" style="display:none;"><span class="big-icon">📝</span><p>No items yet</p></div>
         </div>
         <div class="section" id="viewSection">
             <div class="view-header">
@@ -268,8 +240,8 @@
                 </div>
             </div>
             <div class="view-item-list" id="viewItemList"></div>
-            <div class="no-search-results" id="viewNoResults">🔍 No matching items found.</div>
-            <div class="empty-state" id="viewEmpty" style="display:none;"><span class="big-icon">📖</span><p>Nothing to show.</p></div>
+            <div class="no-search-results" id="viewNoResults">🔍 No items found</div>
+            <div class="empty-state" id="viewEmpty" style="display:none;"><span class="big-icon">📖</span><p>Nothing to show</p></div>
             <div class="reminder-mini" id="nextReminderMini"></div>
         </div>
     </div>
@@ -286,37 +258,51 @@
         </div>
     </div>
 
-    <!-- NOTIFICATION: Item Finished -->
     <div class="notifications-container" id="finishedAlert">
         <div class="error-alert">
-            <svg class="alert-svg red" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-            </svg>
-            <div class="alert-prompt-container">
-                <span class="alert-prompt-heading red">Item Finished</span>
-                <span class="alert-prompt-items red" id="finishedItems"></span>
-                <span class="alert-prompt-time red" id="finishedTime"></span>
+            <svg class="alert-svg red" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <div class="alert-content">
+                <span class="alert-heading red">Item Finished</span>
+                <span class="alert-body red" id="finishedItems"></span>
+                <span class="alert-time red" id="finishedTime"></span>
             </div>
         </div>
     </div>
 
-    <!-- NOTIFICATION: Item Updated -->
     <div class="notifications-container" id="updatedAlert">
         <div class="update-alert">
-            <svg class="alert-svg blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <div class="alert-prompt-container">
-                <span class="alert-prompt-heading blue">Stock Updated</span>
-                <span class="alert-prompt-items blue" id="updatedItems"></span>
-                <span class="alert-prompt-time blue" id="updatedTime"></span>
+            <svg class="alert-svg blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <div class="alert-content">
+                <span class="alert-heading blue">Stock Updated</span>
+                <span class="alert-body blue" id="updatedItems"></span>
+                <span class="alert-time blue" id="updatedTime"></span>
             </div>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
     <script>
+        // ============ FIREBASE CONFIG - REPLACE THESE 4 VALUES ============
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const VAPID_KEY = "YOUR_VAPID_KEY";
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        // ============ JSONBIN CONFIG ============
         const BIN_ID = '69f994d236566621a827ea7c';
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
@@ -324,344 +310,207 @@
         let previousData = [];
         let reminderOn = true;
         let currentMode = 'edit';
-        let reminderInterval = null;
         let editingIndex = null;
         let lastSyncTime = null;
         let finishedTimer = null;
         let updatedTimer = null;
         let todayDate = new Date().toDateString();
-        let audioCtx = null;
+        let deferredPrompt = null;
 
-        function formatTime(timestamp) {
-            if (!timestamp) return '--:--';
-            return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        // ============ PWA INSTALL ============
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBanner').classList.add('show');
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    document.getElementById('installBanner').classList.remove('show');
+                    deferredPrompt = null;
+                });
+            }
         }
 
-        function updateSyncStatus(status) {
-            const badge = document.getElementById('syncBadge');
-            if (status === 'syncing') {
-                badge.textContent = '⟳ SYNCING';
-                badge.style.background = '#fef9e7';
-                badge.style.color = '#b7950b';
-            } else if (status === 'synced') {
-                badge.textContent = '● LIVE';
-                badge.style.background = '#eafaf1';
-                badge.style.color = '#1e8449';
-            } else {
-                badge.textContent = '● OFFLINE';
-                badge.style.background = '#fdedec';
-                badge.style.color = '#b03a2e';
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBanner').classList.remove('show');
+        });
+
+        // ============ SERVICE WORKER ============
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('firebase-messaging-sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.log('SW failed', err));
+        }
+
+        // ============ PUSH NOTIFICATIONS ============
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                    console.log('FCM Token:', token);
+                    // Save token to your bin or server for targeting
+                    return token;
+                }
+            } catch (e) {
+                console.log('Notification permission denied');
             }
+            return null;
+        }
+
+        // Handle foreground messages
+        messaging.onMessage((payload) => {
+            const { title, body } = payload.notification;
+            if (body.includes('finished') || body.includes('zero') || body.includes('0')) {
+                showFinishedAlert([body.replace('finished:','').replace('zero:','').trim()], Date.now());
+            } else {
+                showUpdatedAlert([body]);
+            }
+        });
+
+        // Request permission on load
+        requestNotificationPermission();
+
+        // ============ FUNCTIONS ============
+        function formatTime(ts) { if (!ts) return '--:--'; return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
+
+        function updateSyncStatus(s) {
+            const b = document.getElementById('syncBadge');
+            if (s === 'syncing') { b.textContent = '⟳ SYNCING';
+                b.style.background = '#fef9e7';
+                b.style.color = '#b7950b'; } else if (s === 'synced') { b.textContent = '● LIVE';
+                b.style.background = '#eafaf1';
+                b.style.color = '#1e8449'; } else { b.textContent = '● OFFLINE';
+                b.style.background = '#fdedec';
+                b.style.color = '#b03a2e'; }
             document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime);
         }
 
-        // ============ NOTIFICATION SOUND ============
-        function playNotificationSound(type) {
+        function playSound(type) {
             try {
-                if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-                const ctx = audioCtx;
-                
-                function beep(freq, duration, delay, gain = 0.3) {
-                    setTimeout(() => {
-                        const osc = ctx.createOscillator();
-                        const vol = ctx.createGain();
-                        osc.connect(vol);
-                        vol.connect(ctx.destination);
-                        osc.frequency.value = freq;
-                        osc.type = 'sine';
-                        vol.gain.value = gain;
-                        osc.start();
-                        osc.stop(ctx.currentTime + duration);
-                    }, delay);
-                }
-                
-                if (type === 'finished') {
-                    // Alert sound for finished items
-                    beep(660, 0.2, 0);
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const beep = (f, d, del, g = 0.3) => setTimeout(() => { const o = ctx.createOscillator(),
+                        v = ctx.createGain();
+                    o.connect(v);
+                    v.connect(ctx.destination);
+                    o.frequency.value = f;
+                    o.type = 'sine';
+                    v.gain.value = g;
+                    o.start();
+                    o.stop(ctx.currentTime + d); }, del);
+                if (type === 'finished') { beep(660, 0.2, 0);
                     beep(660, 0.2, 200);
                     beep(660, 0.2, 400);
-                    beep(880, 0.4, 600);
-                } else {
-                    // Nice chime for updates
-                    beep(523, 0.15, 0, 0.2);
+                    beep(880, 0.4, 600); } else { beep(523, 0.15, 0, 0.2);
                     beep(659, 0.15, 100, 0.2);
                     beep(784, 0.15, 200, 0.2);
-                    beep(1047, 0.3, 300, 0.2);
-                }
-            } catch(e) {}
-            
-            // Vibrate
-            if (navigator.vibrate) {
-                if (type === 'finished') navigator.vibrate([300, 150, 300]);
-                else navigator.vibrate([100, 50, 100]);
-            }
+                    beep(1047, 0.3, 300, 0.2); }
+            } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [300, 150, 300] : [100, 50, 100]);
         }
 
-        // ============ SHOW NOTIFICATIONS ============
         function showFinishedAlert(items, zeroTime) {
             if (finishedTimer) clearTimeout(finishedTimer);
-            
-            document.getElementById('finishedItems').textContent = items.join('  ·  ');
-            document.getElementById('finishedTime').textContent = 'Finished at: ' + formatTime(zeroTime || Date.now());
-            
-            const alertEl = document.getElementById('finishedAlert');
-            alertEl.classList.add('show');
-            
-            playNotificationSound('finished');
-            
-            finishedTimer = setTimeout(() => alertEl.classList.remove('show'), 4000);
+            document.getElementById('finishedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
+            document.getElementById('finishedTime').textContent = 'Finished: ' + formatTime(zeroTime || Date.now());
+            document.getElementById('finishedAlert').classList.add('show');
+            playSound('finished');
+            finishedTimer = setTimeout(() => document.getElementById('finishedAlert').classList.remove('show'), 4000);
         }
 
         function showUpdatedAlert(items) {
             if (updatedTimer) clearTimeout(updatedTimer);
-            
-            document.getElementById('updatedItems').textContent = items.join('  ·  ');
+            document.getElementById('updatedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
             document.getElementById('updatedTime').textContent = 'Updated: ' + formatTime(Date.now());
-            
-            const alertEl = document.getElementById('updatedAlert');
-            alertEl.classList.add('show');
-            
-            playNotificationSound('update');
-            
-            updatedTimer = setTimeout(() => alertEl.classList.remove('show'), 3000);
+            document.getElementById('updatedAlert').classList.add('show');
+            playSound('update');
+            updatedTimer = setTimeout(() => document.getElementById('updatedAlert').classList.remove('show'), 3000);
         }
 
-        // ============ COMPARE DATA FOR CHANGES ============
         function detectChanges(newData, oldData) {
-            const finished = [];
-            const updated = [];
-            
-            newData.forEach(newItem => {
-                const oldItem = oldData.find(o => o.name === newItem.name);
-                
-                if (oldItem) {
-                    // Existing item - check if qty changed
-                    if (newItem.qty !== oldItem.qty) {
-                        if (newItem.qty === 0 && !newItem.alerted) {
-                            finished.push(newItem.name);
-                            newItem.alerted = true;
-                            newItem.zeroTime = Date.now();
-                        } else if (newItem.qty !== 0 || oldItem.qty !== 0) {
-                            updated.push(newItem.name + ' (' + oldItem.qty + ' → ' + newItem.qty + ')');
-                        }
+            const finished = [],
+                updated = [];
+            newData.forEach(n => {
+                const o = oldData.find(x => x.name === n.name);
+                if (o) {
+                    if (n.qty !== o.qty) {
+                        if (n.qty === 0 && !n.alerted) { finished.push(n.name);
+                            n.alerted = true;
+                            n.zeroTime = Date.now(); } else updated.push(n.name + ' (' + o.qty + ' → ' + n.qty + ')');
                     }
-                } else {
-                    // New item added
-                    updated.push(newItem.name + ' (NEW · ' + newItem.qty + ')');
-                }
+                } else updated.push(n.name + ' (NEW)');
             });
-            
-            // Check for deleted items
-            oldData.forEach(oldItem => {
-                if (!newData.find(n => n.name === oldItem.name)) {
-                    updated.push(oldItem.name + ' (REMOVED)');
-                }
-            });
-            
+            oldData.forEach(o => { if (!newData.find(n => n.name === o.name)) updated.push(o.name + ' (REMOVED)'); });
             return { finished, updated };
         }
 
-        function checkNewDay() {
-            const today = new Date().toDateString();
-            if (today !== todayDate) {
-                stockData.forEach(item => {
-                    if (item.alerted) delete item.alerted;
-                    if (item.zeroTime) delete item.zeroTime;
-                });
-                saveAllSilent();
-                todayDate = today;
-            }
-        }
-
-        async function saveAllSilent() {
-            try {
-                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
-            } catch(e) {}
-        }
+        async function saveAllSilent() { try { await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) }); } catch (e) {} }
 
         async function fetchData() {
             try {
                 updateSyncStatus('syncing');
-                const res = await fetch(API_URL + '/latest');
-                const json = await res.json();
-                const newData = json.record || [];
-                
-                checkNewDay();
-                
-                // Detect changes by comparing with previous data
+                const r = await fetch(API_URL + '/latest');
+                const j = await r.json();
+                const newData = j.record || [];
+                if (new Date().toDateString() !== todayDate) { newData.forEach(i => { if (i.alerted) delete i.alerted; if (i.zeroTime) delete i
+                            .zeroTime; });
+                    todayDate = new Date().toDateString();
+                    saveAllSilent(); }
                 if (previousData.length > 0) {
                     const changes = detectChanges(newData, previousData);
-                    
-                    if (changes.finished.length > 0) {
-                        const zeroTime = newData.find(i => changes.finished.includes(i.name))?.zeroTime || Date.now();
-                        showFinishedAlert(changes.finished, zeroTime);
-                        await saveAllSilent();
-                    }
-                    
-                    if (changes.updated.length > 0) {
-                        showUpdatedAlert(changes.updated);
-                    }
+                    if (changes.finished.length > 0) { showFinishedAlert(changes.finished, newData.find(i => changes.finished.includes(i
+                                .name))?.zeroTime || Date.now());
+                        saveAllSilent(); }
+                    if (changes.updated.length > 0) showUpdatedAlert(changes.updated);
                 }
-                
                 previousData = JSON.parse(JSON.stringify(newData));
                 stockData = newData;
                 lastSyncTime = Date.now();
                 updateSyncStatus('synced');
                 renderAll();
-            } catch (e) {
-                updateSyncStatus('error');
-            }
+            } catch (e) { updateSyncStatus('error'); }
         }
 
-        function getStatus(qty) { if (qty === 0) return 'red'; if (qty <= 5) return 'orange'; return 'green'; }
-        function showToast(msg) { const t = document.getElementById('toast');
-            t.textContent = msg;
+        function getStatus(q) { return q === 0 ? 'red' : q <= 5 ? 'orange' : 'green'; }
+
+        function showToast(m) { const t = document.getElementById('toast');
+            t.textContent = m;
             t.classList.add('show');
             clearTimeout(t._t);
             t._t = setTimeout(() => t.classList.remove('show'), 1800); }
-        function escapeHTML(s) { const d = document.createElement('div');
+
+        function esc(s) { const d = document.createElement('div');
             d.textContent = s; return d.innerHTML; }
+
         function getSearchTerm() { return document.getElementById('searchInput').value.trim().toLowerCase(); }
+
         function filterItems() { document.getElementById('clearSearchBtn').classList.toggle('visible', getSearchTerm().length > 0);
             applySearchFilter(); }
+
         function clearSearch() { document.getElementById('searchInput').value = '';
             document.getElementById('clearSearchBtn').classList.remove('visible');
             applySearchFilter(); }
-        function applySearchFilter() {
-            const term = getSearchTerm();
-            document.querySelectorAll('#editItemList .edit-item-card').forEach(c => { c.classList.toggle('hidden-by-search', term !== '' && !c.querySelector('.item-name-edit').textContent.toLowerCase().includes(term)); });
-            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => { c.classList.toggle('hidden-by-search', term !== '' && !c.querySelector('span').textContent.toLowerCase().includes(term)); });
-        }
 
-        function renderEdit() {
-            const list = document.getElementById('editItemList');
-            const empty = document.getElementById('editEmpty');
-            if (stockData.length === 0) { list.innerHTML = '';
-                empty.style.display = 'block'; return; }
-            empty.style.display = 'none';
-            list.innerHTML = stockData.map((item, idx) => { const s = getStatus(item.qty); return `<div class="edit-item-card" onclick="openQtyModal(${idx})"><span class="item-name-edit">${escapeHTML(item.name)}</span><span class="qty-badge-edit ${s}">${item.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${idx})">🗑️</button></div>`; }).join('');
-            applySearchFilter();
-        }
+        function applySearchFilter() { const t = getSearchTerm();
+            document.querySelectorAll('#editItemList .edit-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !==
+                '' && !c.querySelector('.item-name-edit').textContent.toLowerCase().includes(t)));
+            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !==
+                '' && !c.querySelector('span').textContent.toLowerCase().includes(t))); }
 
-        function renderView() {
-            const list = document.getElementById('viewItemList');
-            const empty = document.getElementById('viewEmpty');
-            if (stockData.length === 0) { list.innerHTML = '';
-                empty.style.display = 'block';
+        function renderEdit() { const l = document.getElementById('editItemList'),
+                e = document.getElementById('editEmpty'); if (stockData.length === 0) { l.innerHTML = '';
+                e.style.display = 'block'; return; }
+            e.style.display = 'none';
+            l.innerHTML = stockData.map((i, x) => { const s = getStatus(i.qty); return `<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${s}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`; }).join(
+                '');
+            applySearchFilter(); }
+
+        function renderView() { const l = document.getElementById('viewItemList'),
+                e = document.getElementById('viewEmpty'); if (stockData.length === 0) { l.innerHTML = '';
+                e.style.display = 'block';
                 updatePills(); return; }
-            empty.style.display = 'none';
-            const sorted = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
-            list.innerHTML = sorted.map(item => { const s = getStatus(item.qty); return `<div class="view-item-card status-${s}"><span>${escapeHTML(item.name)}</span><span class="view-qty-badge ${s}">${item.qty}</span></div>`; }).join('');
-            updatePills();
-            updateReminderMini();
-            applySearchFilter();
-        }
-
-        function updatePills() { let total = 0,
-                g = 0,
-                o = 0,
-                r = 0;
-            stockData.forEach(item => { total += item.qty; const s = getStatus(item.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
-            document.getElementById('pillTotal').textContent = 'Total: ' + total;
-            document.getElementById('pillGreen').textContent = '● ' + g;
-            document.getElementById('pillOrange').textContent = '● ' + o;
-            document.getElementById('pillRed').textContent = '● ' + r; }
-
-        function renderAll() { renderEdit();
-            renderView(); }
-
-        function openQtyModal(idx) { editingIndex = idx;
-            document.getElementById('modalSubtitle').textContent = stockData[idx].name;
-            document.getElementById('modalInput').value = stockData[idx].qty;
-            document.getElementById('qtyModal').style.display = 'flex';
-            setTimeout(() => { document.getElementById('modalInput').focus();
-                document.getElementById('modalInput').select(); }, 150); }
-        function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none';
-            editingIndex = null; }
-        function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
-        function saveQtyModal() { if (editingIndex === null) return;
-            const newQty = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
-            if (newQty === 0 && stockData[editingIndex].qty !== 0) {
-                stockData[editingIndex].alerted = false;
-                stockData[editingIndex].zeroTime = Date.now();
-            }
-            if (newQty > 0) {
-                delete stockData[editingIndex].alerted;
-                delete stockData[editingIndex].zeroTime;
-            }
-            stockData[editingIndex].qty = newQty;
-            saveAll();
-            closeQtyModal(); }
-
-        async function saveAll() {
-            try {
-                updateSyncStatus('syncing');
-                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
-                lastSyncTime = Date.now();
-                updateSyncStatus('synced');
-            } catch (e) { showToast('⚠️ Save failed'); }
-        }
-
-        function addItem() { const n = document.getElementById('newItemName').value.trim(); const q = parseInt(document.getElementById('newItemQty').value) || 0; if (!n) { showToast('⚠️ Enter item name'); return; } if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
-            stockData.push({ name: n, qty: Math.max(0, q) });
-            if (q === 0) { stockData[stockData.length-1].alerted = true;
-                stockData[stockData.length-1].zeroTime = Date.now(); }
-            saveAll();
-            document.getElementById('newItemName').value = '';
-            document.getElementById('newItemQty').value = '10';
-            document.getElementById('newItemName').focus(); }
-
-        function deleteItem(e, idx) { e.stopPropagation();
-            stockData.splice(idx, 1);
-            saveAll(); }
-
-        function switchMode(m) { currentMode = m;
-            document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
-            document.getElementById('btnView').classList.toggle('active', m === 'view');
-            document.getElementById('editSection').classList.toggle('visible', m === 'edit');
-            document.getElementById('viewSection').classList.toggle('visible', m === 'view');
-            renderAll(); }
-
-        function startReminder() { stopReminder();
-            reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playAlarm(); }, 60000);
-            updateReminderMini(); }
-        function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval);
-                reminderInterval = null; } }
-        function playAlarm() {
-            playNotificationSound('finished');
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('🔔 Bulk Stock Check!', { body: 'Check remaining stock now.', tag: 'bulk-reminder', requireInteraction: true });
-            }
-        }
-
-        function toggleReminderView() { reminderOn = !reminderOn;
-            localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
-            reminderOn ? startReminder() : stopReminder();
-            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF'; }
-
-        function updateReminderMini() { const el = document.getElementById('nextReminderMini'); if (!reminderOn) { el.textContent = '🔕 Reminder OFF'; return; } const h = new Date().getHours(); let next; if (h < 19) next = '7:00 PM'; else if (h >= 23) next = 'Tomorrow 7:00 PM'; else { const nh = h + 1;
-                next = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
-            el.textContent = '⏰ Next alert: ' + next; }
-
-        document.addEventListener('keydown', function(e) { if (document.getElementById('qtyModal').style.display === 'flex') { if (e.key === 'Enter') { e.preventDefault();
-                saveQtyModal(); } if (e.key === 'Escape') closeQtyModal(); } });
-        document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
-        document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
-
-        async function init() {
-            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-            reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
-            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
-            await fetchData();
-            previousData = JSON.parse(JSON.stringify(stockData));
-            if (reminderOn) startReminder();
-            setInterval(fetchData, 2000);
-        }
-
-        init();
-    </script>
-</body>
-</html>
+            e.style.display = 'none'; const s = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (
+                    o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] ||
