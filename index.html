@@ -116,7 +116,7 @@
 </head>
 <body>
 
-    <div class="install-banner" id="installBanner" onclick="installApp()">📲 Tap here to install app for notifications</div>
+    <div class="install-banner" id="installBanner" onclick="installApp()">📲 Tap to install app for push notifications</div>
 
     <div class="topbar">
         <div class="topbar-left"><div class="title">📦 Bulk Stock</div><div class="date" id="dateDisplay"></div></div>
@@ -205,12 +205,17 @@
 
     <div class="toast" id="toast"></div>
 
-    <!-- Firebase Scripts -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
     <script>
-        // ============ FIREBASE CONFIG ============
+        // ============ CONFIG ============
+        const BIN_ID = '69f994d236566621a827ea7c';
+        const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+        const LOCAL_KEY = 'bulk_stock_backup_v1';
+        
+        // Init Firebase
         firebase.initializeApp({
             apiKey: "AIzaSyDp_tqtsmeEr3nGJ8D_xZVxLzcQ7fxPDe4",
             authDomain: "bulk-stock-notifications.firebaseapp.com",
@@ -222,365 +227,305 @@
         const messaging = firebase.messaging();
         const VAPID_KEY = "BBOn_Eo7yoAaUVTDVJr96imOMamRK3SamAKdUC3bl49FB9wplMU5ydIXL-XrEr3K0U-q4Zs-zoqHANSsWqxevvs";
 
-        // ============ JSONBIN CONFIG ============
-        const BIN_ID = '69f994d236566621a827ea7c';
-        const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-        const LOCAL_BACKUP_KEY = 'bulk_stock_local_backup';
-
-        let stockData = [], previousData = [], reminderOn = true, currentMode = 'edit';
-        let editingIndex = null, lastSyncTime = null, finishedTimer = null, updatedTimer = null;
-        let todayDate = new Date().toDateString(), deferredPrompt = null;
+        // ============ STATE ============
+        let stockData = [];
+        let previousData = [];
+        let reminderOn = true;
+        let currentMode = 'edit';
+        let editingIndex = null;
+        let lastSyncTime = null;
+        let finishedTimer = null;
+        let updatedTimer = null;
+        let todayDate = new Date().toDateString();
+        let deferredPrompt = null;
+        let isFirstLoad = true;
         let swRegistration = null;
 
-        // ============ SIMPLE NOTIFICATION SOUND ============
+        // ============ SOUND ============
         function playSound(type) {
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                gain.gain.value = 0.15;
-                osc.type = 'sine';
-                if (type === 'finished') {
-                    osc.frequency.value = 800;
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.1);
-                    setTimeout(() => {
-                        const osc2 = ctx.createOscillator();
-                        const gain2 = ctx.createGain();
-                        osc2.connect(gain2);
-                        gain2.connect(ctx.destination);
-                        gain2.gain.value = 0.15;
-                        osc2.type = 'sine';
-                        osc2.frequency.value = 1000;
-                        osc2.start();
-                        osc2.stop(ctx.currentTime + 0.15);
-                    }, 120);
-                } else {
-                    osc.frequency.value = 660;
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.2);
-                }
-            } catch (e) {}
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const beep = (f, d, del, g = 0.2) => setTimeout(() => {
+                    const o = ctx.createOscillator(), v = ctx.createGain();
+                    o.connect(v); v.connect(ctx.destination);
+                    o.frequency.value = f; o.type = 'sine'; v.gain.value = g;
+                    o.start(); o.stop(ctx.currentTime + d);
+                }, del);
+                if (type === 'finished') { beep(660, 0.15, 0); beep(660, 0.15, 200); beep(880, 0.3, 400); }
+                else { beep(523, 0.12, 0, 0.15); beep(659, 0.12, 100, 0.15); beep(784, 0.2, 200, 0.15); }
+            } catch(e) {}
             if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [200, 100, 200] : [80]);
         }
 
-        // ============ TOAST FUNCTION ============
-        function showToast(m) { 
+        // ============ TOAST ============
+        function showToast(m) {
             const t = document.getElementById('toast');
-            if (!t) return;
-            t.textContent = m;
-            t.classList.add('show');
-            clearTimeout(t._t);
-            t._t = setTimeout(() => t.classList.remove('show'), 1800); 
+            t.textContent = m; t.classList.add('show');
+            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
         }
 
         // ============ PWA INSTALL ============
-        window.addEventListener('beforeinstallprompt', (e) => { 
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBanner').classList.add('show'); 
-        });
-        function installApp() { 
-            if (deferredPrompt) { 
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => { 
-                    document.getElementById('installBanner').classList.remove('show');
-                    deferredPrompt = null; 
-                }); 
-            } 
-        }
-        window.addEventListener('appinstalled', () => { 
-            document.getElementById('installBanner').classList.remove('show'); 
-        });
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('installBanner').classList.add('show'); });
+        function installApp() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { document.getElementById('installBanner').classList.remove('show'); deferredPrompt = null; }); } }
+        window.addEventListener('appinstalled', () => document.getElementById('installBanner').classList.remove('show'));
 
         // ============ SERVICE WORKER ============
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    swRegistration = await navigator.serviceWorker.register('/bulk-stock/firebase-messaging-sw.js', { scope: '/bulk-stock/' });
+                    swRegistration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
                     console.log('✅ SW registered');
-                    await navigator.serviceWorker.ready;
                     await requestNotificationPermission();
-                } catch (err) {
-                    console.error('❌ SW failed:', err);
-                }
+                } catch(err) { console.log('SW error:', err); }
             });
         }
 
-        // ============ PUSH NOTIFICATIONS ============
+        // ============ NOTIFICATIONS ============
         async function requestNotificationPermission() {
-            try {
-                if (!('Notification' in window)) return;
-                if (Notification.permission === 'granted') { await getFCMToken(); return; }
-                if (Notification.permission === 'denied') return;
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') await getFCMToken();
-            } catch (error) { console.error('❌ Permission error:', error); }
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'granted') { await getFCMToken(); return; }
+            if (Notification.permission === 'denied') return;
+            const p = await Notification.requestPermission();
+            if (p === 'granted') await getFCMToken();
         }
-
         async function getFCMToken() {
             try {
-                const registration = await navigator.serviceWorker.ready;
-                const currentToken = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
-                if (currentToken) { console.log('✅ FCM Token:', currentToken); showToast('🔔 Notifications ready!'); }
-            } catch (err) { console.error('❌ Token error:', err); }
+                const reg = await navigator.serviceWorker.ready;
+                const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+                if (token) { console.log('✅ FCM ready'); showToast('🔔 Notifications ON'); }
+            } catch(e) { console.log('FCM error:', e); }
         }
-
-        messaging.onTokenRefresh(async () => { await getFCMToken(); });
-
         messaging.onMessage((payload) => {
-            const notification = payload.notification || {};
-            const title = notification.title || 'Bulk Stock';
-            const body = notification.body || '';
-            if (body.includes('finished') || body.includes('0 left')) {
-                showFinishedAlert([body], Date.now());
-            } else if (body) {
-                showUpdatedAlert([body]);
-            }
-            if (Notification.permission === 'granted' && swRegistration) {
-                swRegistration.showNotification(title, {
-                    body: body || 'Stock update',
-                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📦</text></svg>',
-                    vibrate: [200, 100, 200],
-                    tag: 'foreground-notification'
-                });
-            }
+            const n = payload.notification || {};
+            if (n.body && n.body.includes('finished')) showFinishedAlert([n.body], Date.now());
+            else if (n.body) showUpdatedAlert([n.body]);
         });
 
-        // ============ FUNCTIONS ============
-        function formatTime(ts) { 
-            if (!ts) return '--:--'; 
-            return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); 
-        }
-        function updateSyncStatus(s) { 
-            const b = document.getElementById('syncBadge'); 
-            if (s === 'syncing') { b.textContent = '⟳ SYNCING'; b.style.background = '#fef9e7'; b.style.color = '#b7950b'; } 
-            else if (s === 'synced') { b.textContent = '● LIVE'; b.style.background = '#eafaf1'; b.style.color = '#1e8449'; } 
+        // ============ HELPERS ============
+        function formatTime(ts) { if (!ts) return '--:--'; return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
+        function updateSyncStatus(s) {
+            const b = document.getElementById('syncBadge');
+            if (s === 'syncing') { b.textContent = '⟳ SYNCING'; b.style.background = '#fef9e7'; b.style.color = '#b7950b'; }
+            else if (s === 'synced') { b.textContent = '● LIVE'; b.style.background = '#eafaf1'; b.style.color = '#1e8449'; }
             else { b.textContent = '● OFFLINE'; b.style.background = '#fdedec'; b.style.color = '#b03a2e'; }
-            document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime); 
+            document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime);
         }
-        function showFinishedAlert(items, zeroTime) { 
+        function showFinishedAlert(items, zeroTime) {
             if (finishedTimer) clearTimeout(finishedTimer);
             document.getElementById('finishedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
             document.getElementById('finishedTime').textContent = 'Finished: ' + formatTime(zeroTime || Date.now());
             document.getElementById('finishedAlert').classList.add('show');
             playSound('finished');
-            finishedTimer = setTimeout(() => document.getElementById('finishedAlert').classList.remove('show'), 4000); 
+            finishedTimer = setTimeout(() => document.getElementById('finishedAlert').classList.remove('show'), 4000);
         }
-        function showUpdatedAlert(items) { 
+        function showUpdatedAlert(items) {
             if (updatedTimer) clearTimeout(updatedTimer);
             document.getElementById('updatedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
             document.getElementById('updatedTime').textContent = 'Updated: ' + formatTime(Date.now());
             document.getElementById('updatedAlert').classList.add('show');
             playSound('update');
-            updatedTimer = setTimeout(() => document.getElementById('updatedAlert').classList.remove('show'), 3000); 
+            updatedTimer = setTimeout(() => document.getElementById('updatedAlert').classList.remove('show'), 3000);
         }
-        function detectChanges(newData, oldData) { 
+        function detectChanges(newData, oldData) {
             const finished = [], updated = [];
-            newData.forEach(n => { 
-                const o = oldData.find(x => x.name === n.name); 
-                if (o) { 
-                    if (n.qty !== o.qty) { 
-                        if (n.qty === 0 && !n.alerted) { finished.push(n.name); n.alerted = true; n.zeroTime = Date.now(); } 
-                        else updated.push(n.name + ' (' + o.qty + ' → ' + n.qty + ')'); 
-                    } 
-                } else updated.push(n.name + ' (NEW)'); 
+            newData.forEach(n => {
+                const o = oldData.find(x => x.name === n.name);
+                if (o) {
+                    if (n.qty !== o.qty) {
+                        if (n.qty === 0 && !n.alerted) { finished.push(n.name); n.alerted = true; n.zeroTime = Date.now(); }
+                        else updated.push(n.name + ' (' + o.qty + ' → ' + n.qty + ')');
+                    }
+                } else updated.push(n.name + ' (NEW)');
             });
-            oldData.forEach(o => { if (!newData.find(n => n.name === o.name)) updated.push(o.name + ' (REMOVED)'); }); 
-            return { finished, updated }; 
+            oldData.forEach(o => { if (!newData.find(n => n.name === o.name)) updated.push(o.name + ' (REMOVED)'); });
+            return { finished, updated };
         }
         function getStatus(q) { return q === 0 ? 'red' : q <= 5 ? 'orange' : 'green'; }
         function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
         function getSearchTerm() { return document.getElementById('searchInput').value.trim().toLowerCase(); }
-        function filterItems() { 
-            document.getElementById('clearSearchBtn').classList.toggle('visible', getSearchTerm().length > 0);
-            applySearchFilter(); 
-        }
-        function clearSearch() { 
-            document.getElementById('searchInput').value = '';
-            document.getElementById('clearSearchBtn').classList.remove('visible');
-            applySearchFilter(); 
-        }
-        function applySearchFilter() { 
+        function filterItems() { document.getElementById('clearSearchBtn').classList.toggle('visible', getSearchTerm().length > 0); applySearchFilter(); }
+        function clearSearch() { document.getElementById('searchInput').value = ''; document.getElementById('clearSearchBtn').classList.remove('visible'); applySearchFilter(); }
+        function applySearchFilter() {
             const t = getSearchTerm();
             document.querySelectorAll('#editItemList .edit-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !== '' && !c.querySelector('.item-name-edit').textContent.toLowerCase().includes(t)));
-            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !== '' && !c.querySelector('span').textContent.toLowerCase().includes(t))); 
+            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !== '' && !c.querySelector('span').textContent.toLowerCase().includes(t)));
         }
 
-        // ============ 🔥 FIXED: fetchData with localStorage backup ============
-        async function fetchData() { 
-            try { 
-                updateSyncStatus('syncing'); 
-                const r = await fetch(API_URL + '/latest'); 
-                const j = await r.json(); 
+        // ============ 🔥 FIXED: CORE DATA FUNCTIONS ============
+        async function fetchData() {
+            try {
+                updateSyncStatus('syncing');
+                const r = await fetch(API_URL + '/latest');
+                const j = await r.json();
                 let newData = j.record || [];
                 
-                // If JSONBin is empty, try local backup
-                if (newData.length === 0) {
-                    const localBackup = localStorage.getItem(LOCAL_BACKUP_KEY);
-                    if (localBackup) {
-                        newData = JSON.parse(localBackup);
-                        console.log('📋 Loaded from local backup:', newData.length, 'items');
-                        // Restore to JSONBin
+                // If JSONBin is empty, use localStorage backup
+                if (newData.length === 0 && isFirstLoad) {
+                    const backup = localStorage.getItem(LOCAL_KEY);
+                    if (backup) {
+                        newData = JSON.parse(backup);
+                        console.log('🔄 Restored from backup:', newData.length, 'items');
+                        // Restore to JSONBin silently
                         fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newData) }).catch(()=>{});
                     }
                 }
                 
-                if (new Date().toDateString() !== todayDate) { 
-                    newData.forEach(i => { if (i.alerted) delete i.alerted; if (i.zeroTime) delete i.zeroTime; });
+                // Reset alert flags on new day
+                if (new Date().toDateString() !== todayDate) {
+                    newData.forEach(i => { delete i.alerted; delete i.zeroTime; });
                     todayDate = new Date().toDateString();
-                } 
-                if (previousData.length > 0) { 
-                    const changes = detectChanges(newData, previousData); 
-                    if (changes.finished.length > 0) showFinishedAlert(changes.finished, newData.find(i => changes.finished.includes(i.name))?.zeroTime || Date.now());
-                    if (changes.updated.length > 0) showUpdatedAlert(changes.updated); 
                 }
+                
+                // Detect changes (skip on first load)
+                if (!isFirstLoad && previousData.length > 0) {
+                    const changes = detectChanges(newData, previousData);
+                    if (changes.finished.length > 0) {
+                        showFinishedAlert(changes.finished, newData.find(i => changes.finished.includes(i.name))?.zeroTime || Date.now());
+                        // Save alerted flags
+                        fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newData) }).catch(()=>{});
+                    }
+                    if (changes.updated.length > 0) showUpdatedAlert(changes.updated);
+                }
+                
                 previousData = JSON.parse(JSON.stringify(newData));
                 stockData = newData;
-                // Save to localStorage as backup
-                localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(stockData));
+                localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData));
                 lastSyncTime = Date.now();
                 updateSyncStatus('synced');
-                renderAll(); 
-            } catch (e) { 
+                isFirstLoad = false;
+                renderAll();
+            } catch(e) {
                 updateSyncStatus('error');
-                // If fetch fails, load from localStorage
-                const localBackup = localStorage.getItem(LOCAL_BACKUP_KEY);
-                if (localBackup && stockData.length === 0) {
-                    stockData = JSON.parse(localBackup);
-                    console.log('📋 Offline - loaded backup:', stockData.length, 'items');
+                // Load from localStorage if fetch fails
+                const backup = localStorage.getItem(LOCAL_KEY);
+                if (backup && stockData.length === 0) {
+                    stockData = JSON.parse(backup);
                     renderAll();
                 }
-            } 
+            }
         }
 
-        // ============ 🔥 FIXED: saveAll with localStorage backup ============
-        async function saveAll() { 
-            // Save to localStorage instantly
-            localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(stockData));
+        async function saveAll() {
+            // Save locally first (instant)
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData));
+            renderAll();
             
-            try { 
+            // Then save to cloud
+            try {
                 updateSyncStatus('syncing');
                 await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
                 lastSyncTime = Date.now();
                 updateSyncStatus('synced');
-                renderAll();
-                console.log('✅ Saved:', stockData.length, 'items');
-            } catch (e) { 
-                console.error('Save to JSONBin failed, data in localStorage:', e);
-                showToast('⚠️ Saved locally');
-                renderAll();
-            } 
+            } catch(e) {
+                console.log('Cloud save failed, data in localStorage');
+            }
         }
 
-        async function saveAllSilent() { 
-            try { 
-                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) }); 
-            } catch (e) {} 
-        }
-
-        function renderEdit() { 
-            const l = document.getElementById('editItemList'), e = document.getElementById('editEmpty'); 
-            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; document.getElementById('editNoResults').classList.remove('visible'); return; }
+        // ============ RENDER ============
+        function renderEdit() {
+            const l = document.getElementById('editItemList'), e = document.getElementById('editEmpty');
+            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; return; }
             e.style.display = 'none';
-            l.innerHTML = stockData.map((i, x) => { 
-                const s = getStatus(i.qty); 
-                return `<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${s}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`; 
+            l.innerHTML = stockData.map((i, x) => {
+                const s = getStatus(i.qty);
+                return `<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${s}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`;
             }).join('');
-            applySearchFilter(); 
+            applySearchFilter();
         }
-        function renderView() { 
-            const l = document.getElementById('viewItemList'), e = document.getElementById('viewEmpty'); 
-            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; document.getElementById('viewNoResults').classList.remove('visible'); updatePills(); return; }
-            e.style.display = 'none'; 
+        function renderView() {
+            const l = document.getElementById('viewItemList'), e = document.getElementById('viewEmpty');
+            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; updatePills(); return; }
+            e.style.display = 'none';
             const s = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
             l.innerHTML = s.map(i => { const st = getStatus(i.qty); return `<div class="view-item-card status-${st}"><span>${esc(i.name)}</span><span class="view-qty-badge ${st}">${i.qty}</span></div>`; }).join('');
-            updatePills(); updateReminderMini(); applySearchFilter(); 
+            updatePills(); updateReminderMini(); applySearchFilter();
         }
-        function updatePills() { 
+        function updatePills() {
             let t = 0, g = 0, o = 0, r = 0;
             stockData.forEach(i => { t += i.qty; const s = getStatus(i.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
             document.getElementById('pillTotal').textContent = 'Total: ' + t;
             document.getElementById('pillGreen').textContent = '● ' + g;
             document.getElementById('pillOrange').textContent = '● ' + o;
-            document.getElementById('pillRed').textContent = '● ' + r; 
+            document.getElementById('pillRed').textContent = '● ' + r;
         }
         function renderAll() { renderEdit(); renderView(); }
-        function openQtyModal(x) { 
-            editingIndex = x;
-            document.getElementById('modalSubtitle').textContent = stockData[x].name;
-            document.getElementById('modalInput').value = stockData[x].qty;
-            document.getElementById('qtyModal').style.display = 'flex';
-            setTimeout(() => { document.getElementById('modalInput').focus(); document.getElementById('modalInput').select(); }, 150); 
-        }
+
+        // ============ ACTIONS ============
+        function openQtyModal(x) { editingIndex = x; document.getElementById('modalSubtitle').textContent = stockData[x].name; document.getElementById('modalInput').value = stockData[x].qty; document.getElementById('qtyModal').style.display = 'flex'; setTimeout(() => { document.getElementById('modalInput').focus(); document.getElementById('modalInput').select(); }, 150); }
         function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none'; editingIndex = null; }
         function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
-        function saveQtyModal() { 
-            if (editingIndex === null) return; 
-            const nq = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0); 
-            if (nq === 0 && stockData[editingIndex].qty !== 0) { stockData[editingIndex].alerted = false; stockData[editingIndex].zeroTime = Date.now(); } 
+        function saveQtyModal() {
+            if (editingIndex === null) return;
+            const nq = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
+            if (nq === 0 && stockData[editingIndex].qty !== 0) { stockData[editingIndex].alerted = false; stockData[editingIndex].zeroTime = Date.now(); }
             if (nq > 0) { delete stockData[editingIndex].alerted; delete stockData[editingIndex].zeroTime; }
             stockData[editingIndex].qty = nq;
-            saveAll(); closeQtyModal(); 
+            saveAll(); closeQtyModal();
         }
-        function addItem() { 
-            const nameInput = document.getElementById('newItemName');
-            const qtyInput = document.getElementById('newItemQty');
-            const n = nameInput.value.trim();
-            const q = parseInt(qtyInput.value) || 0; 
-            if (!n) { showToast('⚠️ Enter item name'); return; } 
+        function addItem() {
+            const n = document.getElementById('newItemName').value.trim();
+            const q = parseInt(document.getElementById('newItemQty').value) || 0;
+            if (!n) { showToast('⚠️ Enter item name'); return; }
             if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
-            stockData.push({ name: n, qty: Math.max(0, q) }); 
-            if (q === 0) { stockData[stockData.length - 1].alerted = true; stockData[stockData.length - 1].zeroTime = Date.now(); }
-            nameInput.value = ''; qtyInput.value = '10';
-            saveAll(); nameInput.focus();
+            stockData.push({ name: n, qty: Math.max(0, q) });
+            if (q === 0) { stockData[stockData.length-1].alerted = true; stockData[stockData.length-1].zeroTime = Date.now(); }
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemQty').value = '10';
+            saveAll();
+            document.getElementById('newItemName').focus();
         }
         function deleteItem(e, x) { e.stopPropagation(); stockData.splice(x, 1); saveAll(); }
-        function switchMode(m) { 
+        function switchMode(m) {
             currentMode = m;
             document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
             document.getElementById('btnView').classList.toggle('active', m === 'view');
             document.getElementById('editSection').classList.toggle('visible', m === 'edit');
             document.getElementById('viewSection').classList.toggle('visible', m === 'view');
-            renderAll(); 
+            renderAll();
         }
+
+        // ============ REMINDER ============
         let reminderInterval = null;
         function startReminder() { stopReminder(); reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playSound('finished'); }, 60000); updateReminderMini(); }
         function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; } }
-        function toggleReminderView() { 
+        function toggleReminderView() {
             reminderOn = !reminderOn;
             localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
             reminderOn ? startReminder() : stopReminder();
             document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF'; 
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
         }
-        function updateReminderMini() { 
-            const e = document.getElementById('nextReminderMini'); 
-            if (!reminderOn) { e.textContent = '🔕 Reminder OFF'; return; } 
-            const h = new Date().getHours(); let n; 
-            if (h < 19) n = '7:00 PM'; else if (h >= 23) n = 'Tomorrow 7:00 PM'; 
+        function updateReminderMini() {
+            const e = document.getElementById('nextReminderMini');
+            if (!reminderOn) { e.textContent = '🔕 Reminder OFF'; return; }
+            const h = new Date().getHours(); let n;
+            if (h < 19) n = '7:00 PM'; else if (h >= 23) n = 'Tomorrow 7:00 PM';
             else { const nh = h + 1; n = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
-            e.textContent = '⏰ Next: ' + n; 
+            e.textContent = '⏰ Next: ' + n;
         }
-        document.addEventListener('keydown', function(e) { 
-            if (document.getElementById('qtyModal').style.display === 'flex') { 
-                if (e.key === 'Enter') { e.preventDefault(); saveQtyModal(); } 
-                if (e.key === 'Escape') closeQtyModal(); 
-            } 
+
+        // ============ KEYBOARD ============
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('qtyModal').style.display === 'flex') {
+                if (e.key === 'Enter') { e.preventDefault(); saveQtyModal(); }
+                if (e.key === 'Escape') closeQtyModal();
+            }
         });
         document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('newItemQty').focus(); } });
         document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
-        
+
+        // ============ INIT ============
         async function init() {
             document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
             document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
             document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
-            await fetchData();
-            previousData = JSON.parse(JSON.stringify(stockData));
             if (reminderOn) startReminder();
+            
+            // Try JSONBin first, fallback to localStorage
+            await fetchData();
+            
+            // Auto-sync every 2 seconds
             setInterval(fetchData, 2000);
         }
         init();
