@@ -231,10 +231,47 @@
         let todayDate = new Date().toDateString(), deferredPrompt = null;
         let swRegistration = null;
 
-        // ============ TOAST FUNCTION (moved up for early use) ============
+        // ============ SIMPLE NOTIFICATION SOUND ============
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                gain.gain.value = 0.15;
+                osc.type = 'sine';
+                
+                if (type === 'finished') {
+                    // Two quick high beeps
+                    osc.frequency.value = 800;
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                    setTimeout(() => {
+                        const osc2 = ctx.createOscillator();
+                        const gain2 = ctx.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(ctx.destination);
+                        gain2.gain.value = 0.15;
+                        osc2.type = 'sine';
+                        osc2.frequency.value = 1000;
+                        osc2.start();
+                        osc2.stop(ctx.currentTime + 0.15);
+                    }, 120);
+                } else {
+                    // Single pleasant ding
+                    osc.frequency.value = 660;
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.2);
+                }
+            } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [200, 100, 200] : [80]);
+        }
+
+        // ============ TOAST FUNCTION ============
         function showToast(m) { 
             const t = document.getElementById('toast');
-            if (!t) return; // Safety check - DOM might not be ready
+            if (!t) return;
             t.textContent = m;
             t.classList.add('show');
             clearTimeout(t._t);
@@ -266,20 +303,17 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    swRegistration = await navigator.serviceWorker.register('/bulk-stock/firebase-messaging-sw.js', { scope: '/bulk-stock/' });
                     console.log('✅ Service Worker registered:', swRegistration.scope);
-                    
-                    const readySw = await navigator.serviceWorker.ready;
-                    console.log('✅ Service Worker is ready:', readySw.active.state);
-                    
+                    await navigator.serviceWorker.ready;
+                    console.log('✅ Service Worker is ready');
                     await requestNotificationPermission();
                 } catch (err) {
                     console.error('❌ Service Worker registration failed:', err);
                 }
             });
         } else {
-            console.warn('⚠️ Service Workers not supported in this browser');
-            // Use setTimeout to ensure DOM is ready when showToast runs
+            console.warn('⚠️ Service Workers not supported');
             setTimeout(() => showToast('⚠️ Notifications not supported'), 500);
         }
 
@@ -288,85 +322,58 @@
             try {
                 if (!('Notification' in window)) {
                     console.log('❌ Notifications not supported');
-                    showToast('⚠️ Browser does not support notifications');
                     return;
                 }
-
                 console.log('Current permission:', Notification.permission);
-
                 if (Notification.permission === 'granted') {
                     console.log('✅ Permission already granted');
                     await getFCMToken();
                     return;
                 }
-
                 if (Notification.permission === 'denied') {
-                    console.log('❌ Notifications blocked - user must enable in browser settings');
-                    showToast('🔕 Notifications blocked in settings');
+                    console.log('❌ Notifications blocked');
                     return;
                 }
-
-                console.log('Requesting notification permission...');
                 const permission = await Notification.requestPermission();
                 console.log('Permission result:', permission);
-
                 if (permission === 'granted') {
                     await getFCMToken();
-                } else {
-                    console.log('❌ Permission denied by user');
-                    showToast('🔕 Enable notifications in settings');
                 }
             } catch (error) {
                 console.error('❌ Notification permission error:', error);
-                showToast('⚠️ Notification setup failed');
             }
         }
 
         async function getFCMToken() {
             try {
-                console.log('Getting FCM token...');
-                
                 const registration = await navigator.serviceWorker.ready;
-                console.log('Using SW registration:', registration.scope);
-
                 const currentToken = await messaging.getToken({ 
                     vapidKey: VAPID_KEY,
                     serviceWorkerRegistration: registration 
                 });
-
                 if (currentToken) {
-                    console.log('✅ FCM Token obtained:', currentToken);
-                    showToast('🔔 Notifications are ready!');
-                } else {
-                    console.log('❌ No registration token available');
-                    showToast('⚠️ Could not get notification token');
+                    console.log('✅ FCM Token:', currentToken);
+                    showToast('🔔 Notifications ready!');
                 }
             } catch (err) {
-                console.error('❌ Error getting FCM token:', err);
-                showToast('⚠️ Notification setup failed: ' + err.message);
+                console.error('❌ Token error:', err);
             }
         }
 
-        // Handle token refresh
         messaging.onTokenRefresh(async () => {
-            console.log('🔄 Token refreshed');
             await getFCMToken();
         });
 
-        // Handle foreground messages
         messaging.onMessage((payload) => {
-            console.log('📨 Foreground message received:', payload);
-            
+            console.log('📨 Foreground message:', payload);
             const notification = payload.notification || {};
             const title = notification.title || 'Bulk Stock';
             const body = notification.body || '';
-
             if (body.includes('finished') || body.includes('0 left')) {
                 showFinishedAlert([body], Date.now());
             } else if (body) {
                 showUpdatedAlert([body]);
             }
-
             if (Notification.permission === 'granted' && swRegistration) {
                 swRegistration.showNotification(title, {
                     body: body || 'Stock update received',
@@ -376,8 +383,6 @@
                 });
             }
         });
-
-        console.log('✅ Firebase Messaging initialized');
 
         // ============ FUNCTIONS ============
         function formatTime(ts) { 
@@ -403,35 +408,6 @@
             document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime); 
         }
         
-        function playSound(type) { 
-            try { 
-                const ctx = new(window.AudioContext || window.webkitAudioContext)(); 
-                const beep = (f, d, del, g = 0.3) => setTimeout(() => { 
-                    const o = ctx.createOscillator(),
-                    v = ctx.createGain();
-                    o.connect(v);
-                    v.connect(ctx.destination);
-                    o.frequency.value = f;
-                    o.type = 'sine';
-                    v.gain.value = g;
-                    o.start();
-                    o.stop(ctx.currentTime + d); 
-                }, del); 
-                if (type === 'finished') { 
-                    beep(660, 0.2, 0);
-                    beep(660, 0.2, 200);
-                    beep(660, 0.2, 400);
-                    beep(880, 0.4, 600); 
-                } else { 
-                    beep(523, 0.15, 0, 0.2);
-                    beep(659, 0.15, 100, 0.2);
-                    beep(784, 0.15, 200, 0.2);
-                    beep(1047, 0.3, 300, 0.2); 
-                } 
-            } catch (e) {} 
-            if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [300, 150, 300] : [100, 50, 100]); 
-        }
-        
         function showFinishedAlert(items, zeroTime) { 
             if (finishedTimer) clearTimeout(finishedTimer);
             document.getElementById('finishedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
@@ -451,8 +427,7 @@
         }
         
         function detectChanges(newData, oldData) { 
-            const finished = [],
-            updated = [];
+            const finished = [], updated = [];
             newData.forEach(n => { 
                 const o = oldData.find(x => x.name === n.name); 
                 if (o) { 
@@ -536,11 +511,12 @@
         }
         
         function renderEdit() { 
-            const l = document.getElementById('editItemList'),
-            e = document.getElementById('editEmpty'); 
+            const l = document.getElementById('editItemList'), e = document.getElementById('editEmpty'); 
             if (stockData.length === 0) { 
                 l.innerHTML = '';
-                e.style.display = 'block'; return; 
+                e.style.display = 'block'; 
+                document.getElementById('editNoResults').classList.remove('visible');
+                return; 
             }
             e.style.display = 'none';
             l.innerHTML = stockData.map((i, x) => { 
@@ -551,12 +527,13 @@
         }
         
         function renderView() { 
-            const l = document.getElementById('viewItemList'),
-            e = document.getElementById('viewEmpty'); 
+            const l = document.getElementById('viewItemList'), e = document.getElementById('viewEmpty'); 
             if (stockData.length === 0) { 
                 l.innerHTML = '';
                 e.style.display = 'block';
-                updatePills(); return; 
+                document.getElementById('viewNoResults').classList.remove('visible');
+                updatePills(); 
+                return; 
             }
             e.style.display = 'none'; 
             const s = [...stockData].sort((a, b) => { 
@@ -573,10 +550,7 @@
         }
         
         function updatePills() { 
-            let t = 0,
-            g = 0,
-            o = 0,
-            r = 0;
+            let t = 0, g = 0, o = 0, r = 0;
             stockData.forEach(i => { 
                 t += i.qty; 
                 const s = getStatus(i.qty); 
@@ -636,30 +610,42 @@
                 updateSyncStatus('syncing');
                 await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
                 lastSyncTime = Date.now();
-                updateSyncStatus('synced'); 
+                updateSyncStatus('synced');
+                renderAll();
             } catch (e) { 
                 showToast('⚠️ Save failed'); 
             } 
         }
         
         function addItem() { 
-            const n = document.getElementById('newItemName').value.trim(),
-            q = parseInt(document.getElementById('newItemQty').value) || 0; 
+            const nameInput = document.getElementById('newItemName');
+            const qtyInput = document.getElementById('newItemQty');
+            const n = nameInput.value.trim();
+            const q = parseInt(qtyInput.value) || 0; 
+            
+            console.log('Adding item:', n, q);
+            
             if (!n) { 
-                showToast('⚠️ Enter item name'); return; 
+                showToast('⚠️ Enter item name'); 
+                return; 
             } 
             if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { 
-                showToast('⚠️ Already exists'); return; 
+                showToast('⚠️ Already exists'); 
+                return; 
             }
+            
             stockData.push({ name: n, qty: Math.max(0, q) }); 
             if (q === 0) { 
                 stockData[stockData.length - 1].alerted = true;
                 stockData[stockData.length - 1].zeroTime = Date.now(); 
             }
+            
+            console.log('Stock data after add:', stockData);
+            
+            nameInput.value = '';
+            qtyInput.value = '10';
             saveAll();
-            document.getElementById('newItemName').value = '';
-            document.getElementById('newItemQty').value = '10';
-            document.getElementById('newItemName').focus(); 
+            nameInput.focus();
         }
         
         function deleteItem(e, x) { 
@@ -676,6 +662,8 @@
             document.getElementById('viewSection').classList.toggle('visible', m === 'view');
             renderAll(); 
         }
+        
+        let reminderInterval = null;
         
         function startReminder() { 
             stopReminder();
@@ -716,6 +704,7 @@
             e.textContent = '⏰ Next: ' + n; 
         }
         
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) { 
             if (document.getElementById('qtyModal').style.display === 'flex') { 
                 if (e.key === 'Enter') { 
@@ -727,11 +716,17 @@
         });
         
         document.getElementById('newItemName').addEventListener('keydown', function(e) { 
-            if (e.key === 'Enter') addItem(); 
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('newItemQty').focus();
+            }
         });
         
         document.getElementById('newItemQty').addEventListener('keydown', function(e) { 
-            if (e.key === 'Enter') addItem(); 
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addItem(); 
+            }
         });
         
         async function init() {
