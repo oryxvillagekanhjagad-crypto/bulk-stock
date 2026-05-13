@@ -513,4 +513,115 @@
                 e.style.display = 'block';
                 updatePills(); return; }
             e.style.display = 'none'; const s = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (
-                    o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] ||
+                    o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
+            l.innerHTML = s.map(i => { const st = getStatus(i.qty); return `<div class="view-item-card status-${st}"><span>${esc(i.name)}</span><span class="view-qty-badge ${st}">${i.qty}</span></div>`; }).join(
+                '');
+            updatePills();
+            updateReminderMini();
+            applySearchFilter(); }
+
+        function updatePills() { let t = 0,
+                g = 0,
+                o = 0,
+                r = 0;
+            stockData.forEach(i => { t += i.qty; const s = getStatus(i.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s ===
+                    'red') r++; });
+            document.getElementById('pillTotal').textContent = 'Total: ' + t;
+            document.getElementById('pillGreen').textContent = '● ' + g;
+            document.getElementById('pillOrange').textContent = '● ' + o;
+            document.getElementById('pillRed').textContent = '● ' + r; }
+
+        function renderAll() { renderEdit();
+            renderView(); }
+
+        function openQtyModal(x) { editingIndex = x;
+            document.getElementById('modalSubtitle').textContent = stockData[x].name;
+            document.getElementById('modalInput').value = stockData[x].qty;
+            document.getElementById('qtyModal').style.display = 'flex';
+            setTimeout(() => { document.getElementById('modalInput').focus();
+                document.getElementById('modalInput').select(); }, 150); }
+
+        function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none';
+            editingIndex = null; }
+
+        function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
+
+        function saveQtyModal() { if (editingIndex === null) return; const nq = Math.max(0, parseInt(document.getElementById(
+                'modalInput').value) || 0); if (nq === 0 && stockData[editingIndex].qty !== 0) { stockData[editingIndex].alerted =
+                false;
+                stockData[editingIndex].zeroTime = Date.now(); } if (nq > 0) { delete stockData[editingIndex].alerted; delete stockData[
+                    editingIndex
+                ].zeroTime; }
+            stockData[editingIndex].qty = nq;
+            saveAll();
+            closeQtyModal(); }
+
+        async function saveAll() { try { updateSyncStatus('syncing');
+                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(
+                        stockData) });
+                lastSyncTime = Date.now();
+                updateSyncStatus('synced'); } catch (e) { showToast('⚠️ Save failed'); } }
+
+        function addItem() { const n = document.getElementById('newItemName').value.trim(),
+                q = parseInt(document.getElementById('newItemQty').value) || 0; if (!n) { showToast('⚠️ Enter item name'); return; } if (
+                stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
+            stockData.push({ name: n, qty: Math.max(0, q) }); if (q === 0) { stockData[stockData.length - 1].alerted = true;
+                stockData[stockData.length - 1].zeroTime = Date.now(); }
+            saveAll();
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemQty').value = '10';
+            document.getElementById('newItemName').focus(); }
+
+        function deleteItem(e, x) { e.stopPropagation();
+            stockData.splice(x, 1);
+            saveAll(); }
+
+        function switchMode(m) { currentMode = m;
+            document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
+            document.getElementById('btnView').classList.toggle('active', m === 'view');
+            document.getElementById('editSection').classList.toggle('visible', m === 'edit');
+            document.getElementById('viewSection').classList.toggle('visible', m === 'view');
+            renderAll(); }
+
+        function startReminder() { stopReminder();
+            reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playSound(
+                    'finished'); }, 60000);
+            updateReminderMini(); }
+
+        function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval);
+                reminderInterval = null; } }
+
+        function toggleReminderView() { reminderOn = !reminderOn;
+            localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
+            reminderOn ? startReminder() : stopReminder();
+            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF'; }
+
+        function updateReminderMini() { const e = document.getElementById('nextReminderMini'); if (!reminderOn) { e.textContent =
+                '🔕 Reminder OFF'; return; } const h = new Date().getHours(); let n; if (h < 19) n = '7:00 PM'; else if (h >= 23) n =
+                'Tomorrow 7:00 PM'; else { const nh = h + 1;
+                n = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
+            e.textContent = '⏰ Next: ' + n; }
+
+        document.addEventListener('keydown', function(e) { if (document.getElementById('qtyModal').style.display === 'flex') { if (e
+                    .key === 'Enter') { e.preventDefault();
+                saveQtyModal(); } if (e.key === 'Escape') closeQtyModal(); } });
+        document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
+        document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') addItem(); });
+
+        async function init() {
+            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short',
+                month: 'short', day: 'numeric' });
+            reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
+            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
+            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
+            await fetchData();
+            previousData = JSON.parse(JSON.stringify(stockData));
+            if (reminderOn) startReminder();
+            setInterval(fetchData, 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
