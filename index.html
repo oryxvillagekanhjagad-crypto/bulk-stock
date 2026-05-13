@@ -8,23 +8,25 @@
     <meta name="theme-color" content="#1a1a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "c51d289a-3d5d-4c04-a391-28891c9e491c",
+                safari_web_id: "web.onesignal.auto.10d6980b-bbad-483e-b993-08fa2a289dd8",
+                notifyButton: { enable: false },
+                serviceWorkerPath: "OneSignalSDKWorker.js",
+                serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js"
+            });
+        });
+    </script>
+    
     <style>
-        :root {
-            --green: #2ecc71;
-            --orange: #f39c12;
-            --red: #e74c3c;
-            --bg: #ffffff;
-            --card-bg: #f8f9fa;
-            --text: #1a1a1a;
-            --subtext: #6b7280;
-            --border: #e5e7eb;
-        }
+        :root { --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --bg: #ffffff; --card-bg: #f8f9fa; --text: #1a1a1a; --subtext: #6b7280; --border: #e5e7eb; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh;
-            max-width: 500px; margin: 0 auto; -webkit-font-smoothing: antialiased; font-size: 18px; overflow-x: hidden;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh; max-width: 500px; margin: 0 auto; -webkit-font-smoothing: antialiased; font-size: 18px; overflow-x: hidden; }
         .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--border); }
         .topbar-left .title { font-size: 1.5rem; font-weight: 800; }
         .topbar-left .date { font-size: 0.85rem; color: var(--subtext); font-weight: 500; }
@@ -46,27 +48,12 @@
         .add-item-row input.name-input { flex: 2; min-width: 130px; }
         .add-item-row input.qty-input { flex: 1; min-width: 70px; text-align: center; font-weight: 700; font-size: 1.1rem; }
         .add-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .add-btn:active { transform: scale(0.9); background: #444; }
-        .sync-info-bar { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 20px; flex-wrap: wrap; }
-        .sync-badge { display: inline-block; padding: 6px 16px; border-radius: 22px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; transition: all 0.3s; }
+        .sync-info-bar { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 20px; }
+        .sync-badge { display: inline-block; padding: 6px 16px; border-radius: 22px; font-size: 0.7rem; font-weight: 700; transition: all 0.3s; }
         .sync-time-text { font-size: 0.7rem; color: #999; font-weight: 500; }
-        .notifications-container { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; z-index: 3000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
-        .notifications-container.show { opacity: 1; pointer-events: auto; }
-        .error-alert, .update-alert { border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; gap: 12px; align-items: flex-start; }
-        .error-alert { background-color: #fef2f2; border: 2px solid #fca5a5; }
-        .update-alert { background-color: #eff6ff; border: 2px solid #93c5fd; }
-        .alert-svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
-        .alert-svg.red { color: #F87171; } .alert-svg.blue { color: #3b82f6; }
-        .alert-content { display: flex; flex-direction: column; flex: 1; }
-        .alert-heading { font-size: 0.95rem; font-weight: 800; }
-        .alert-heading.red { color: #991B1B; } .alert-heading.blue { color: #1e40af; }
-        .alert-body { margin-top: 4px; font-size: 1.1rem; font-weight: 700; line-height: 1.4; }
-        .alert-body.red { color: #B91C1C; } .alert-body.blue { color: #1d4ed8; }
-        .alert-time { margin-top: 3px; font-size: 0.75rem; font-weight: 500; opacity: 0.8; }
-        .alert-time.red { color: #DC2626; } .alert-time.blue { color: #2563eb; }
         .edit-item-list { display: flex; flex-direction: column; gap: 8px; }
         .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 16px 18px; border-radius: 16px; gap: 10px; cursor: pointer; border: 2px solid transparent; }
-        .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
+        .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; }
         .edit-item-card.hidden-by-search { display: none; }
         .edit-item-card .item-name-edit { flex: 1; font-size: 1.05rem; font-weight: 600; word-break: break-word; }
         .edit-item-card .qty-badge-edit { font-size: 1.3rem; font-weight: 800; min-width: 44px; text-align: center; padding: 6px 14px; border-radius: 25px; background: white; }
@@ -74,9 +61,6 @@
         .edit-item-card .qty-badge-edit.orange { color:#b7950b; background:#fef9e7; }
         .edit-item-card .qty-badge-edit.red { color:#b03a2e; background:#fdedec; }
         .delete-btn-edit { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: #ccc; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .delete-btn-edit:active { color: var(--red); background: #fee; }
-        .no-search-results { text-align: center; padding: 40px 20px; color: #bbb; font-size: 1rem; font-weight: 600; display: none; }
-        .no-search-results.visible { display: block; }
         .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
         .summary-pills { display: flex; gap: 8px; flex-wrap: wrap; }
         .pill { padding: 8px 16px; border-radius: 25px; font-size: 0.85rem; font-weight: 700; }
@@ -88,25 +72,18 @@
         .view-item-card.hidden-by-search { display: none; }
         .view-item-card.status-green { border-left-color: var(--green); background:#f9fdf9; }
         .view-item-card.status-orange { border-left-color: var(--orange); background:#fffdf7; }
-        .view-item-card.status-red { border-left-color: var(--red); background:#fefafa; opacity: 0.65; text-decoration: line-through; text-decoration-color: #ccc; color: #999; }
+        .view-item-card.status-red { border-left-color: var(--red); background:#fefafa; opacity: 0.65; text-decoration: line-through; color: #999; }
         .view-qty-badge { font-size: 1.4rem; font-weight: 900; min-width: 48px; text-align: center; padding: 5px 14px; border-radius: 25px; }
         .view-qty-badge.green { color:#1e8449; background:#eafaf1; }
         .view-qty-badge.orange { color:#b7950b; background:#fef9e7; }
         .view-qty-badge.red { color:#b03a2e; background:#fdedec; }
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; }
         .modal-box { background: white; border-radius: 24px; padding: 28px 22px; width: 90%; max-width: 380px; text-align: center; }
-        .modal-box .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
-        .modal-box .modal-subtitle { font-size: 0.85rem; color: var(--subtext); margin-bottom: 18px; }
         .modal-box input { width: 100%; padding: 18px; font-size: 1.8rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 18px; outline: none; margin-bottom: 18px; background: var(--card-bg); }
-        .modal-box input:focus { border-color: #1a1a1a; }
         .modal-buttons { display: flex; gap: 10px; }
         .modal-btn { flex: 1; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 40px; border: none; cursor: pointer; }
-        .modal-btn:active { transform: scale(0.94); }
-        .modal-btn.cancel { background:#f1f3f5; color:#666; }
-        .modal-btn.save { background:#1a1a1a; color:white; }
+        .modal-btn.cancel { background:#f1f3f5; color:#666; } .modal-btn.save { background:#1a1a1a; color:white; }
         .empty-state { text-align: center; padding: 50px 20px; color: #bbb; }
-        .empty-state .big-icon { font-size: 4rem; display: block; margin-bottom: 12px; }
-        .empty-state p { font-size: 1rem; font-weight: 500; }
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
         .reminder-mini { font-size: 0.8rem; color: var(--subtext); text-align: center; padding: 14px 0; font-weight: 600; }
@@ -116,7 +93,7 @@
 </head>
 <body>
 
-    <div class="install-banner" id="installBanner" onclick="installApp()">📲 Tap to install app for push notifications</div>
+    <div class="install-banner" id="installBanner" onclick="installApp()">📲 Tap to install for push notifications</div>
 
     <div class="topbar">
         <div class="topbar-left"><div class="title">📦 Bulk Stock</div><div class="date" id="dateDisplay"></div></div>
@@ -128,7 +105,7 @@
 
     <div class="sync-info-bar">
         <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● LIVE</span>
-        <span class="sync-time-text">Updated: <strong id="lastUpdatedText" style="color:#666;">--:--</strong></span>
+        <span class="sync-time-text">Updated: <strong id="lastUpdatedText">--:--</strong></span>
     </div>
 
     <div class="search-bar">
@@ -147,8 +124,7 @@
                 <button class="add-btn" onclick="addItem()">+</button>
             </div>
             <div class="edit-item-list" id="editItemList"></div>
-            <div class="no-search-results" id="editNoResults">🔍 No items found</div>
-            <div class="empty-state" id="editEmpty" style="display:none;"><span class="big-icon">📝</span><p>No items yet</p></div>
+            <div class="empty-state" id="editEmpty" style="display:none;"><span style="font-size:4rem">📝</span><p>No items yet</p></div>
         </div>
         <div class="section" id="viewSection">
             <div class="view-header">
@@ -163,16 +139,15 @@
                 </div>
             </div>
             <div class="view-item-list" id="viewItemList"></div>
-            <div class="no-search-results" id="viewNoResults">🔍 No items found</div>
-            <div class="empty-state" id="viewEmpty" style="display:none;"><span class="big-icon">📖</span><p>Nothing to show</p></div>
+            <div class="empty-state" id="viewEmpty" style="display:none;"><span style="font-size:4rem">📖</span><p>Nothing to show</p></div>
             <div class="reminder-mini" id="nextReminderMini"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="qtyModal" style="display:none;" onclick="closeModalOutside(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-title">Update Quantity</div>
-            <div class="modal-subtitle" id="modalSubtitle"></div>
+            <div style="font-weight:800;margin-bottom:4px">Update Quantity</div>
+            <div style="color:#6b7280;margin-bottom:18px;font-size:0.85rem" id="modalSubtitle"></div>
             <input type="number" id="modalInput" min="0" value="0">
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeQtyModal()">Cancel</button>
@@ -181,352 +156,144 @@
         </div>
     </div>
 
-    <div class="notifications-container" id="finishedAlert">
-        <div class="error-alert">
-            <svg class="alert-svg red" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-            <div class="alert-content">
-                <span class="alert-heading red">Item Finished</span>
-                <span class="alert-body red" id="finishedItems"></span>
-                <span class="alert-time red" id="finishedTime"></span>
-            </div>
-        </div>
-    </div>
-
-    <div class="notifications-container" id="updatedAlert">
-        <div class="update-alert">
-            <svg class="alert-svg blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            <div class="alert-content">
-                <span class="alert-heading blue">Stock Updated</span>
-                <span class="alert-body blue" id="updatedItems"></span>
-                <span class="alert-time blue" id="updatedTime"></span>
-            </div>
-        </div>
-    </div>
-
     <div class="toast" id="toast"></div>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
-
     <script>
-        // ============ CONFIG ============
         const BIN_ID = '69f994d236566621a827ea7c';
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-        const LOCAL_KEY = 'bulk_stock_backup_v1';
-        
-        // Init Firebase
-        firebase.initializeApp({
-            apiKey: "AIzaSyDp_tqtsmeEr3nGJ8D_xZVxLzcQ7fxPDe4",
-            authDomain: "bulk-stock-notifications.firebaseapp.com",
-            projectId: "bulk-stock-notifications",
-            storageBucket: "bulk-stock-notifications.firebasestorage.app",
-            messagingSenderId: "479042559644",
-            appId: "1:479042559644:web:8a80c65ad479d0a3c81759"
-        });
-        const messaging = firebase.messaging();
-        const VAPID_KEY = "BBOn_Eo7yoAaUVTDVJr96imOMamRK3SamAKdUC3bl49FB9wplMU5ydIXL-XrEr3K0U-q4Zs-zoqHANSsWqxevvs";
+        const LOCAL_KEY = 'bulk_stock_v2';
+        const ONESIGNAL_APP_ID = 'c51d289a-3d5d-4c04-a391-28891c9e491c';
+        const ONESIGNAL_API_KEY = 'os_v2_app_yuosrgr5lvgaji4rfcerzhsjdqebfcbjq37u744o5jma6mc6b7e5wa2cfs7anknjau4z5d2q6rbgzrgctenzsxph3etaemrwiwpzyaa';
 
-        // ============ STATE ============
-        let stockData = [];
-        let previousData = [];
-        let reminderOn = true;
-        let currentMode = 'edit';
-        let editingIndex = null;
-        let lastSyncTime = null;
-        let finishedTimer = null;
-        let updatedTimer = null;
-        let todayDate = new Date().toDateString();
-        let deferredPrompt = null;
-        let isFirstLoad = true;
-        let swRegistration = null;
+        let stockData=[],previousData=[],reminderOn=true,currentMode='edit';
+        let editingIndex=null,lastSyncTime=null,todayDate=new Date().toDateString();
+        let deferredPrompt=null,isFirstLoad=true;
 
-        // ============ SOUND ============
-        function playSound(type) {
-            try {
-                const ctx = new(window.AudioContext || window.webkitAudioContext)();
-                const beep = (f, d, del, g = 0.2) => setTimeout(() => {
-                    const o = ctx.createOscillator(), v = ctx.createGain();
-                    o.connect(v); v.connect(ctx.destination);
-                    o.frequency.value = f; o.type = 'sine'; v.gain.value = g;
-                    o.start(); o.stop(ctx.currentTime + d);
-                }, del);
-                if (type === 'finished') { beep(660, 0.15, 0); beep(660, 0.15, 200); beep(880, 0.3, 400); }
-                else { beep(523, 0.12, 0, 0.15); beep(659, 0.12, 100, 0.15); beep(784, 0.2, 200, 0.15); }
-            } catch(e) {}
-            if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [200, 100, 200] : [80]);
+        function playSound(t){
+            try{const c=new(window.AudioContext||window.webkitAudioContext)();const b=(f,d,del,g=0.2)=>setTimeout(()=>{const o=c.createOscillator(),v=c.createGain();o.connect(v);v.connect(c.destination);o.frequency.value=f;o.type='sine';v.gain.value=g;o.start();o.stop(c.currentTime+d)},del);t==='finished'?(b(660,0.15,0),b(660,0.15,200),b(880,0.3,400)):(b(523,0.12,0,0.15),b(659,0.12,100,0.15),b(784,0.2,200,0.15))}catch(e){}
+            if(navigator.vibrate)navigator.vibrate(t==='finished'?[200,100,200]:[80]);
+        }
+        function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800)}
+        function formatTime(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):'--:--'}
+        function updateSyncStatus(s){
+            const b=document.getElementById('syncBadge');
+            s==='syncing'?(b.textContent='⟳ SYNCING',b.style.background='#fef9e7',b.style.color='#b7950b'):s==='synced'?(b.textContent='● LIVE',b.style.background='#eafaf1',b.style.color='#1e8449'):(b.textContent='● OFFLINE',b.style.background='#fdedec',b.style.color='#b03a2e');
+            document.getElementById('lastUpdatedText').textContent=formatTime(lastSyncTime);
+        }
+        function detectChanges(nd,od){
+            const f=[],u=[];
+            nd.forEach(n=>{const o=od.find(x=>x.name===n.name);if(o){if(n.qty!==o.qty){if(n.qty===0&&!n.alerted){f.push(n.name);n.alerted=true;n.zeroTime=Date.now()}else u.push(n.name+' ('+o.qty+' → '+n.qty+')')}}else u.push(n.name+' (NEW)')});
+            od.forEach(o=>{if(!nd.find(n=>n.name===o.name))u.push(o.name+' (REMOVED)')});
+            return{finished:f,updated:u};
+        }
+        function getStatus(q){return q===0?'red':q<=5?'orange':'green'}
+        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+        async function sendPushNotification(title,message){
+            try{
+                await fetch('https://onesignal.com/api/v1/notifications',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':'Basic '+btoa(ONESIGNAL_API_KEY)},
+                    body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['Subscribed Users'],headings:{en:title},contents:{en:message},url:'https://oryxvillagekanhjagad-crypto.github.io/bulk-stock/'})
+                });
+            }catch(e){console.log('Push failed')}
         }
 
-        // ============ TOAST ============
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            t.textContent = m; t.classList.add('show');
-            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
-        }
-
-        // ============ PWA INSTALL ============
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('installBanner').classList.add('show'); });
-        function installApp() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { document.getElementById('installBanner').classList.remove('show'); deferredPrompt = null; }); } }
-        window.addEventListener('appinstalled', () => document.getElementById('installBanner').classList.remove('show'));
-
-        // ============ SERVICE WORKER ============
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    swRegistration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
-                    console.log('✅ SW registered');
-                    await requestNotificationPermission();
-                } catch(err) { console.log('SW error:', err); }
-            });
-        }
-
-        // ============ NOTIFICATIONS ============
-        async function requestNotificationPermission() {
-            if (!('Notification' in window)) return;
-            if (Notification.permission === 'granted') { await getFCMToken(); return; }
-            if (Notification.permission === 'denied') return;
-            const p = await Notification.requestPermission();
-            if (p === 'granted') await getFCMToken();
-        }
-        async function getFCMToken() {
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-                if (token) { console.log('✅ FCM ready'); showToast('🔔 Notifications ON'); }
-            } catch(e) { console.log('FCM error:', e); }
-        }
-        messaging.onMessage((payload) => {
-            const n = payload.notification || {};
-            if (n.body && n.body.includes('finished')) showFinishedAlert([n.body], Date.now());
-            else if (n.body) showUpdatedAlert([n.body]);
-        });
-
-        // ============ HELPERS ============
-        function formatTime(ts) { if (!ts) return '--:--'; return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
-        function updateSyncStatus(s) {
-            const b = document.getElementById('syncBadge');
-            if (s === 'syncing') { b.textContent = '⟳ SYNCING'; b.style.background = '#fef9e7'; b.style.color = '#b7950b'; }
-            else if (s === 'synced') { b.textContent = '● LIVE'; b.style.background = '#eafaf1'; b.style.color = '#1e8449'; }
-            else { b.textContent = '● OFFLINE'; b.style.background = '#fdedec'; b.style.color = '#b03a2e'; }
-            document.getElementById('lastUpdatedText').textContent = formatTime(lastSyncTime);
-        }
-        function showFinishedAlert(items, zeroTime) {
-            if (finishedTimer) clearTimeout(finishedTimer);
-            document.getElementById('finishedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
-            document.getElementById('finishedTime').textContent = 'Finished: ' + formatTime(zeroTime || Date.now());
-            document.getElementById('finishedAlert').classList.add('show');
-            playSound('finished');
-            finishedTimer = setTimeout(() => document.getElementById('finishedAlert').classList.remove('show'), 4000);
-        }
-        function showUpdatedAlert(items) {
-            if (updatedTimer) clearTimeout(updatedTimer);
-            document.getElementById('updatedItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
-            document.getElementById('updatedTime').textContent = 'Updated: ' + formatTime(Date.now());
-            document.getElementById('updatedAlert').classList.add('show');
-            playSound('update');
-            updatedTimer = setTimeout(() => document.getElementById('updatedAlert').classList.remove('show'), 3000);
-        }
-        function detectChanges(newData, oldData) {
-            const finished = [], updated = [];
-            newData.forEach(n => {
-                const o = oldData.find(x => x.name === n.name);
-                if (o) {
-                    if (n.qty !== o.qty) {
-                        if (n.qty === 0 && !n.alerted) { finished.push(n.name); n.alerted = true; n.zeroTime = Date.now(); }
-                        else updated.push(n.name + ' (' + o.qty + ' → ' + n.qty + ')');
-                    }
-                } else updated.push(n.name + ' (NEW)');
-            });
-            oldData.forEach(o => { if (!newData.find(n => n.name === o.name)) updated.push(o.name + ' (REMOVED)'); });
-            return { finished, updated };
-        }
-        function getStatus(q) { return q === 0 ? 'red' : q <= 5 ? 'orange' : 'green'; }
-        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-        function getSearchTerm() { return document.getElementById('searchInput').value.trim().toLowerCase(); }
-        function filterItems() { document.getElementById('clearSearchBtn').classList.toggle('visible', getSearchTerm().length > 0); applySearchFilter(); }
-        function clearSearch() { document.getElementById('searchInput').value = ''; document.getElementById('clearSearchBtn').classList.remove('visible'); applySearchFilter(); }
-        function applySearchFilter() {
-            const t = getSearchTerm();
-            document.querySelectorAll('#editItemList .edit-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !== '' && !c.querySelector('.item-name-edit').textContent.toLowerCase().includes(t)));
-            document.querySelectorAll('#viewItemList .view-item-card').forEach(c => c.classList.toggle('hidden-by-search', t !== '' && !c.querySelector('span').textContent.toLowerCase().includes(t)));
-        }
-
-        // ============ 🔥 FIXED: CORE DATA FUNCTIONS ============
-        async function fetchData() {
-            try {
+        async function fetchData(){
+            try{
                 updateSyncStatus('syncing');
-                const r = await fetch(API_URL + '/latest');
-                const j = await r.json();
-                let newData = j.record || [];
-                
-                // If JSONBin is empty, use localStorage backup
-                if (newData.length === 0 && isFirstLoad) {
-                    const backup = localStorage.getItem(LOCAL_KEY);
-                    if (backup) {
-                        newData = JSON.parse(backup);
-                        console.log('🔄 Restored from backup:', newData.length, 'items');
-                        // Restore to JSONBin silently
-                        fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newData) }).catch(()=>{});
-                    }
+                const r=await fetch(API_URL+'/latest');
+                const j=await r.json();
+                let nd=j.record||[];
+                if(nd.length===0&&isFirstLoad){const b=localStorage.getItem(LOCAL_KEY);if(b){nd=JSON.parse(b);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{})}}
+                if(new Date().toDateString()!==todayDate){nd.forEach(i=>{delete i.alerted;delete i.zeroTime});todayDate=new Date().toDateString()}
+                if(!isFirstLoad&&previousData.length>0){
+                    const ch=detectChanges(nd,previousData);
+                    if(ch.finished.length>0){showToast('🚨 '+ch.finished.join(', ')+' finished!');playSound('finished');fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});sendPushNotification('Item Finished',ch.finished.join(', ')+' — just hit zero!')}
+                    if(ch.updated.length>0)showToast('📝 '+ch.updated.join(', '));
                 }
-                
-                // Reset alert flags on new day
-                if (new Date().toDateString() !== todayDate) {
-                    newData.forEach(i => { delete i.alerted; delete i.zeroTime; });
-                    todayDate = new Date().toDateString();
-                }
-                
-                // Detect changes (skip on first load)
-                if (!isFirstLoad && previousData.length > 0) {
-                    const changes = detectChanges(newData, previousData);
-                    if (changes.finished.length > 0) {
-                        showFinishedAlert(changes.finished, newData.find(i => changes.finished.includes(i.name))?.zeroTime || Date.now());
-                        // Save alerted flags
-                        fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newData) }).catch(()=>{});
-                    }
-                    if (changes.updated.length > 0) showUpdatedAlert(changes.updated);
-                }
-                
-                previousData = JSON.parse(JSON.stringify(newData));
-                stockData = newData;
-                localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData));
-                lastSyncTime = Date.now();
-                updateSyncStatus('synced');
-                isFirstLoad = false;
-                renderAll();
-            } catch(e) {
-                updateSyncStatus('error');
-                // Load from localStorage if fetch fails
-                const backup = localStorage.getItem(LOCAL_KEY);
-                if (backup && stockData.length === 0) {
-                    stockData = JSON.parse(backup);
-                    renderAll();
-                }
-            }
+                previousData=JSON.parse(JSON.stringify(nd));stockData=nd;
+                localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));lastSyncTime=Date.now();updateSyncStatus('synced');isFirstLoad=false;renderAll();
+            }catch(e){updateSyncStatus('error');const b=localStorage.getItem(LOCAL_KEY);if(b&&stockData.length===0){stockData=JSON.parse(b);renderAll()}}
         }
 
-        async function saveAll() {
-            // Save locally first (instant)
-            localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData));
-            renderAll();
-            
-            // Then save to cloud
-            try {
-                updateSyncStatus('syncing');
-                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) });
-                lastSyncTime = Date.now();
-                updateSyncStatus('synced');
-            } catch(e) {
-                console.log('Cloud save failed, data in localStorage');
-            }
+        async function saveAll(){
+            localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));renderAll();
+            try{updateSyncStatus('syncing');await fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});lastSyncTime=Date.now();updateSyncStatus('synced')}catch(e){}
         }
 
-        // ============ RENDER ============
-        function renderEdit() {
-            const l = document.getElementById('editItemList'), e = document.getElementById('editEmpty');
-            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; return; }
-            e.style.display = 'none';
-            l.innerHTML = stockData.map((i, x) => {
-                const s = getStatus(i.qty);
-                return `<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${s}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`;
-            }).join('');
-            applySearchFilter();
-        }
-        function renderView() {
-            const l = document.getElementById('viewItemList'), e = document.getElementById('viewEmpty');
-            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; updatePills(); return; }
-            e.style.display = 'none';
-            const s = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
-            l.innerHTML = s.map(i => { const st = getStatus(i.qty); return `<div class="view-item-card status-${st}"><span>${esc(i.name)}</span><span class="view-qty-badge ${st}">${i.qty}</span></div>`; }).join('');
-            updatePills(); updateReminderMini(); applySearchFilter();
-        }
-        function updatePills() {
-            let t = 0, g = 0, o = 0, r = 0;
-            stockData.forEach(i => { t += i.qty; const s = getStatus(i.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
-            document.getElementById('pillTotal').textContent = 'Total: ' + t;
-            document.getElementById('pillGreen').textContent = '● ' + g;
-            document.getElementById('pillOrange').textContent = '● ' + o;
-            document.getElementById('pillRed').textContent = '● ' + r;
-        }
-        function renderAll() { renderEdit(); renderView(); }
-
-        // ============ ACTIONS ============
-        function openQtyModal(x) { editingIndex = x; document.getElementById('modalSubtitle').textContent = stockData[x].name; document.getElementById('modalInput').value = stockData[x].qty; document.getElementById('qtyModal').style.display = 'flex'; setTimeout(() => { document.getElementById('modalInput').focus(); document.getElementById('modalInput').select(); }, 150); }
-        function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none'; editingIndex = null; }
-        function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
-        function saveQtyModal() {
-            if (editingIndex === null) return;
-            const nq = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
-            if (nq === 0 && stockData[editingIndex].qty !== 0) { stockData[editingIndex].alerted = false; stockData[editingIndex].zeroTime = Date.now(); }
-            if (nq > 0) { delete stockData[editingIndex].alerted; delete stockData[editingIndex].zeroTime; }
-            stockData[editingIndex].qty = nq;
-            saveAll(); closeQtyModal();
-        }
-        function addItem() {
-            const n = document.getElementById('newItemName').value.trim();
-            const q = parseInt(document.getElementById('newItemQty').value) || 0;
-            if (!n) { showToast('⚠️ Enter item name'); return; }
-            if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
-            stockData.push({ name: n, qty: Math.max(0, q) });
-            if (q === 0) { stockData[stockData.length-1].alerted = true; stockData[stockData.length-1].zeroTime = Date.now(); }
-            document.getElementById('newItemName').value = '';
-            document.getElementById('newItemQty').value = '10';
-            saveAll();
-            document.getElementById('newItemName').focus();
-        }
-        function deleteItem(e, x) { e.stopPropagation(); stockData.splice(x, 1); saveAll(); }
-        function switchMode(m) {
-            currentMode = m;
-            document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
-            document.getElementById('btnView').classList.toggle('active', m === 'view');
-            document.getElementById('editSection').classList.toggle('visible', m === 'edit');
-            document.getElementById('viewSection').classList.toggle('visible', m === 'view');
-            renderAll();
+        function renderEdit(){
+            const l=document.getElementById('editItemList'),e=document.getElementById('editEmpty');
+            if(stockData.length===0){l.innerHTML='';e.style.display='block';return}
+            e.style.display='none';
+            l.innerHTML=stockData.map((i,x)=>`<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${getStatus(i.qty)}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`).join('');
         }
 
-        // ============ REMINDER ============
-        let reminderInterval = null;
-        function startReminder() { stopReminder(); reminderInterval = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playSound('finished'); }, 60000); updateReminderMini(); }
-        function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; } }
-        function toggleReminderView() {
-            reminderOn = !reminderOn;
-            localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn));
-            reminderOn ? startReminder() : stopReminder();
-            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
-        }
-        function updateReminderMini() {
-            const e = document.getElementById('nextReminderMini');
-            if (!reminderOn) { e.textContent = '🔕 Reminder OFF'; return; }
-            const h = new Date().getHours(); let n;
-            if (h < 19) n = '7:00 PM'; else if (h >= 23) n = 'Tomorrow 7:00 PM';
-            else { const nh = h + 1; n = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
-            e.textContent = '⏰ Next: ' + n;
+        function renderView(){
+            const l=document.getElementById('viewItemList'),e=document.getElementById('viewEmpty');
+            if(stockData.length===0){l.innerHTML='';e.style.display='block';updatePills();return}
+            e.style.display='none';
+            const s=[...stockData].sort((a,b)=>{const o={red:3,orange:2,green:1};return(o[getStatus(a.qty)]||0)-(o[getStatus(b.qty)]||0)});
+            l.innerHTML=s.map(i=>`<div class="view-item-card status-${getStatus(i.qty)}"><span>${esc(i.name)}</span><span class="view-qty-badge ${getStatus(i.qty)}">${i.qty}</span></div>`).join('');
+            updatePills();updateReminderMini();
         }
 
-        // ============ KEYBOARD ============
-        document.addEventListener('keydown', function(e) {
-            if (document.getElementById('qtyModal').style.display === 'flex') {
-                if (e.key === 'Enter') { e.preventDefault(); saveQtyModal(); }
-                if (e.key === 'Escape') closeQtyModal();
-            }
-        });
-        document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('newItemQty').focus(); } });
-        document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
+        function updatePills(){
+            let t=0,g=0,o=0,r=0;
+            stockData.forEach(i=>{t+=i.qty;const s=getStatus(i.qty);if(s==='green')g++;if(s==='orange')o++;if(s==='red')r++});
+            document.getElementById('pillTotal').textContent='Total: '+t;
+            document.getElementById('pillGreen').textContent='● '+g;
+            document.getElementById('pillOrange').textContent='● '+o;
+            document.getElementById('pillRed').textContent='● '+r;
+        }
 
-        // ============ INIT ============
-        async function init() {
-            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
-            document.getElementById('reminderIconView').textContent = reminderOn ? '🔔' : '🔕';
-            document.getElementById('reminderTextView').textContent = reminderOn ? 'ON' : 'OFF';
-            if (reminderOn) startReminder();
-            
-            // Try JSONBin first, fallback to localStorage
+        function renderAll(){renderEdit();renderView()}
+
+        function openQtyModal(x){editingIndex=x;document.getElementById('modalSubtitle').textContent=stockData[x].name;document.getElementById('modalInput').value=stockData[x].qty;document.getElementById('qtyModal').style.display='flex';setTimeout(()=>{document.getElementById('modalInput').focus();document.getElementById('modalInput').select()},150)}
+        function closeQtyModal(){document.getElementById('qtyModal').style.display='none';editingIndex=null}
+        function closeModalOutside(e){if(e.target===document.getElementById('qtyModal'))closeQtyModal()}
+        function saveQtyModal(){
+            if(editingIndex===null)return;
+            const nq=Math.max(0,parseInt(document.getElementById('modalInput').value)||0);
+            if(nq===0&&stockData[editingIndex].qty!==0){stockData[editingIndex].alerted=false;stockData[editingIndex].zeroTime=Date.now()}
+            if(nq>0){delete stockData[editingIndex].alerted;delete stockData[editingIndex].zeroTime}
+            stockData[editingIndex].qty=nq;saveAll();closeQtyModal();
+        }
+
+        function addItem(){
+            const n=document.getElementById('newItemName').value.trim(),q=parseInt(document.getElementById('newItemQty').value)||0;
+            if(!n){showToast('⚠️ Enter item name');return}
+            if(stockData.some(i=>i.name.toLowerCase()===n.toLowerCase())){showToast('⚠️ Already exists');return}
+            stockData.push({name:n,qty:Math.max(0,q)});
+            if(q===0){stockData[stockData.length-1].alerted=true;stockData[stockData.length-1].zeroTime=Date.now()}
+            document.getElementById('newItemName').value='';document.getElementById('newItemQty').value='10';saveAll();document.getElementById('newItemName').focus();
+        }
+
+        function deleteItem(e,x){e.stopPropagation();stockData.splice(x,1);saveAll()}
+        function switchMode(m){currentMode=m;document.getElementById('btnEdit').classList.toggle('active',m==='edit');document.getElementById('btnView').classList.toggle('active',m==='view');document.getElementById('editSection').classList.toggle('visible',m==='edit');document.getElementById('viewSection').classList.toggle('visible',m==='view');renderAll()}
+
+        let ri=null;
+        function startReminder(){stopReminder();ri=setInterval(()=>{if(new Date().getHours()>=19&&new Date().getHours()<=23)playSound('finished')},60000);updateReminderMini()}
+        function stopReminder(){if(ri){clearInterval(ri);ri=null}}
+        function toggleReminderView(){reminderOn=!reminderOn;localStorage.setItem('bulk_reminder',JSON.stringify(reminderOn));reminderOn?startReminder():stopReminder();document.getElementById('reminderIconView').textContent=reminderOn?'🔔':'🔕';document.getElementById('reminderTextView').textContent=reminderOn?'ON':'OFF'}
+        function updateReminderMini(){const e=document.getElementById('nextReminderMini');if(!reminderOn){e.textContent='🔕 Reminder OFF';return}const h=new Date().getHours();let n;if(h<19)n='7:00 PM';else if(h>=23)n='Tomorrow 7:00 PM';else{const nh=h+1;n=(nh>12?nh-12:nh)+':00 '+(nh>=12?'PM':'AM')}e.textContent='⏰ Next: '+n}
+
+        window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show')});
+        function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{document.getElementById('installBanner').classList.remove('show');deferredPrompt=null})}}
+        window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+
+        document.addEventListener('keydown',function(e){if(document.getElementById('qtyModal').style.display==='flex'){if(e.key==='Enter'){e.preventDefault();saveQtyModal()}if(e.key==='Escape')closeQtyModal()}});
+        document.getElementById('newItemName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('newItemQty').focus()}});
+        document.getElementById('newItemQty').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addItem()}});
+
+        async function init(){
+            document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+            reminderOn=JSON.parse(localStorage.getItem('bulk_reminder')||'true');
+            document.getElementById('reminderIconView').textContent=reminderOn?'🔔':'🔕';
+            document.getElementById('reminderTextView').textContent=reminderOn?'ON':'OFF';
+            if(reminderOn)startReminder();
             await fetchData();
-            
-            // Auto-sync every 2 seconds
-            setInterval(fetchData, 2000);
+            setInterval(fetchData,2000);
         }
         init();
     </script>
