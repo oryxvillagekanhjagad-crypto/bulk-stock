@@ -3,156 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Bulk Stock</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "c51d289a-3d5d-4c04-a391-28891c9e491c",
-                safari_web_id: "web.onesignal.auto.10d6980b-bbad-483e-b993-08fa2a289dd8",
-                notifyButton: { enable: false },
-                serviceWorkerPath: "OneSignalSDKWorker.js",
-                serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js"
-            });
-        });
-    </script>
-    
     <style>
         :root { --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --bg: #ffffff; --card-bg: #f8f9fa; --text: #1a1a1a; --subtext: #6b7280; --border: #e5e7eb; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh; max-width: 500px; margin: 0 auto; -webkit-font-smoothing: antialiased; font-size: 18px; overflow-x: hidden; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--border); }
-        .topbar-left .title { font-size: 1.5rem; font-weight: 800; }
-        .topbar-left .date { font-size: 0.85rem; color: var(--subtext); font-weight: 500; }
-        .mode-switch { display: flex; gap: 6px; background: #f1f3f5; border-radius: 30px; padding: 4px; }
-        .mode-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: transparent; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .mode-btn.active { background: #1a1a1a; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .search-bar { padding: 10px 20px; position: sticky; top: 85px; z-index: 99; background: var(--bg); }
-        .search-input-wrap { display: flex; align-items: center; background: var(--card-bg); border-radius: 14px; padding: 4px 14px; border: 2px solid var(--border); }
-        .search-input-wrap:focus-within { border-color: #1a1a1a; }
-        .search-icon { font-size: 1.3rem; margin-right: 8px; }
-        .search-input-wrap input { flex: 1; padding: 14px 0; border: none; background: transparent; font-size: 1rem; font-weight: 500; outline: none; }
-        .clear-search { width: 32px; height: 32px; border-radius: 50%; border: none; background: #ddd; font-size: 1rem; cursor: pointer; display: none; align-items: center; justify-content: center; }
-        .clear-search.visible { display: flex; }
-        .main-content { padding: 8px 20px 100px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh; max-width: 500px; margin: 0 auto; -webkit-font-smoothing: antialiased; font-size: 18px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--border); }
+        .topbar-left { display: flex; align-items: center; gap: 10px; }
+        .topbar-left .title { font-size: 1.4rem; font-weight: 800; }
+        .name-badge { font-size: 0.65rem; font-weight: 600; color: #999; background: #f1f3f5; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.3px; opacity: 0.7; }
+        .topbar-left .date { font-size: 0.75rem; color: var(--subtext); font-weight: 500; }
+        .mode-switch { display: flex; gap: 3px; background: #f1f3f5; border-radius: 26px; padding: 3px; }
+        .mode-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: transparent; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .mode-btn.active { background: #1a1a1a; color: white; }
+        .sync-bar { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 18px; }
+        .sync-badge { padding: 4px 12px; border-radius: 18px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3px; transition: all 0.2s; }
+        .sync-time { font-size: 0.65rem; color: #999; font-weight: 500; }
+        .search-bar { padding: 6px 18px; position: sticky; top: 78px; z-index: 99; background: var(--bg); }
+        .search-wrap { display: flex; align-items: center; background: var(--card-bg); border-radius: 12px; padding: 3px 12px; border: 2px solid var(--border); transition: border 0.15s; }
+        .search-wrap:focus-within { border-color: #1a1a1a; }
+        .search-wrap span { font-size: 1.1rem; margin-right: 6px; }
+        .search-wrap input { flex: 1; padding: 12px 0; border: none; background: transparent; font-size: 0.95rem; font-weight: 500; outline: none; }
+        .main-content { padding: 4px 18px 90px; }
         .section { display: none; } .section.visible { display: block; }
-        .add-item-row { display: flex; gap: 10px; margin-bottom: 20px; background: var(--card-bg); padding: 12px; border-radius: 18px; }
-        .add-item-row input { padding: 14px 16px; border: 2px solid var(--border); border-radius: 14px; font-size: 1rem; background: white; outline: none; font-weight: 500; }
-        .add-item-row input:focus { border-color: #1a1a1a; }
-        .add-item-row input.name-input { flex: 2; min-width: 130px; }
-        .add-item-row input.qty-input { flex: 1; min-width: 70px; text-align: center; font-weight: 700; font-size: 1.1rem; }
-        .add-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .sync-info-bar { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 20px; }
-        .sync-badge { display: inline-block; padding: 6px 16px; border-radius: 22px; font-size: 0.7rem; font-weight: 700; transition: all 0.3s; }
-        .sync-time-text { font-size: 0.7rem; color: #999; font-weight: 500; }
-        .edit-item-list { display: flex; flex-direction: column; gap: 8px; }
-        .edit-item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 16px 18px; border-radius: 16px; gap: 10px; cursor: pointer; border: 2px solid transparent; }
-        .edit-item-card:active { background: #e9ecef; border-color: #1a1a1a; }
-        .edit-item-card.hidden-by-search { display: none; }
-        .edit-item-card .item-name-edit { flex: 1; font-size: 1.05rem; font-weight: 600; word-break: break-word; }
-        .edit-item-card .qty-badge-edit { font-size: 1.3rem; font-weight: 800; min-width: 44px; text-align: center; padding: 6px 14px; border-radius: 25px; background: white; }
-        .edit-item-card .qty-badge-edit.green { color:#1e8449; background:#eafaf1; }
-        .edit-item-card .qty-badge-edit.orange { color:#b7950b; background:#fef9e7; }
-        .edit-item-card .qty-badge-edit.red { color:#b03a2e; background:#fdedec; }
-        .delete-btn-edit { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: #ccc; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-        .summary-pills { display: flex; gap: 8px; flex-wrap: wrap; }
-        .pill { padding: 8px 16px; border-radius: 25px; font-size: 0.85rem; font-weight: 700; }
-        .pill.total { background:#ebf5fb; color:#2471a3; } .pill.green { background:#eafaf1; color:#1e8449; }
-        .pill.orange { background:#fef9e7; color:#b7950b; } .pill.red { background:#fdedec; color:#b03a2e; }
-        .reminder-toggle-view { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; background: var(--card-bg); padding: 10px 18px; border-radius: 25px; cursor: pointer; }
-        .view-item-list { display: flex; flex-direction: column; gap: 8px; }
-        .view-item-card { display: flex; align-items: center; justify-content: space-between; padding: 20px 18px; border-radius: 16px; font-weight: 700; font-size: 1.05rem; background: var(--card-bg); border-left: 7px solid transparent; }
-        .view-item-card.hidden-by-search { display: none; }
-        .view-item-card.status-green { border-left-color: var(--green); background:#f9fdf9; }
-        .view-item-card.status-orange { border-left-color: var(--orange); background:#fffdf7; }
-        .view-item-card.status-red { border-left-color: var(--red); background:#fefafa; opacity: 0.65; text-decoration: line-through; color: #999; }
-        .view-qty-badge { font-size: 1.4rem; font-weight: 900; min-width: 48px; text-align: center; padding: 5px 14px; border-radius: 25px; }
-        .view-qty-badge.green { color:#1e8449; background:#eafaf1; }
-        .view-qty-badge.orange { color:#b7950b; background:#fef9e7; }
-        .view-qty-badge.red { color:#b03a2e; background:#fdedec; }
+        
+        /* Bulk Add Button */
+        .bulk-add-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .bulk-btn { padding: 8px 14px; border-radius: 20px; border: 2px solid #e0e0e0; background: white; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+        .bulk-btn:active { background: #1a1a1a; color: white; border-color: #1a1a1a; transform: scale(0.95); }
+        .bulk-btn.primary { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+        
+        .add-row { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 8px; border-radius: 14px; }
+        .add-row input { padding: 12px; border: 2px solid var(--border); border-radius: 12px; font-size: 0.95rem; background: white; outline: none; font-weight: 500; transition: border 0.15s; }
+        .add-row input:focus { border-color: #1a1a1a; }
+        .add-row .name-in { flex: 2; min-width: 100px; }
+        .add-row .qty-in { flex: 1; min-width: 55px; text-align: center; font-weight: 700; font-size: 1rem; }
+        .add-btn { width: 48px; height: 48px; border-radius: 50%; border: none; background: #1a1a1a; color: white; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.1s; }
+        .add-btn:active { background: #444; transform: scale(0.9); }
+        .item-list { display: flex; flex-direction: column; gap: 5px; }
+        .item-card { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 13px 14px; border-radius: 13px; gap: 6px; cursor: pointer; border: 2px solid transparent; transition: all 0.1s; will-change: transform; }
+        .item-card:active { background: #e9ecef; border-color: #1a1a1a; transform: scale(0.98); }
+        .item-card.hidden { display: none; }
+        .item-card .item-name { flex: 1; font-size: 0.95rem; font-weight: 600; word-break: break-word; }
+        .item-card .qty-badge { font-size: 1.1rem; font-weight: 800; min-width: 36px; text-align: center; padding: 4px 10px; border-radius: 20px; background: white; }
+        .qty-badge.green { color: #1e8449; background: #eafaf1; }
+        .qty-badge.orange { color: #b7950b; background: #fef9e7; }
+        .qty-badge.red { color: #b03a2e; background: #fdedec; }
+        .del-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent; color: #ccc; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .del-btn:active { color: var(--red); background: #fee; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+        .pills { display: flex; gap: 5px; flex-wrap: wrap; }
+        .pill { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .pill.total { background: #ebf5fb; color: #2471a3; } .pill.green { background: #eafaf1; color: #1e8449; }
+        .pill.orange { background: #fef9e7; color: #b7950b; } .pill.red { background: #fdedec; color: #b03a2e; }
+        .remind-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 700; background: var(--card-bg); padding: 7px 14px; border-radius: 20px; cursor: pointer; }
+        .view-card { display: flex; align-items: center; justify-content: space-between; padding: 16px 14px; border-radius: 13px; font-weight: 700; font-size: 0.95rem; background: var(--card-bg); border-left: 5px solid transparent; }
+        .view-card.hidden { display: none; }
+        .view-card.green { border-left-color: var(--green); background: #f9fdf9; }
+        .view-card.orange { border-left-color: var(--orange); background: #fffdf7; }
+        .view-card.red { border-left-color: var(--red); background: #fefafa; opacity: 0.65; text-decoration: line-through; color: #999; }
+        .view-qty { font-size: 1.2rem; font-weight: 900; min-width: 40px; text-align: center; padding: 3px 10px; border-radius: 20px; }
+        .view-qty.green { color: #1e8449; background: #eafaf1; } .view-qty.orange { color: #b7950b; background: #fef9e7; } .view-qty.red { color: #b03a2e; background: #fdedec; }
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; }
-        .modal-box { background: white; border-radius: 24px; padding: 28px 22px; width: 90%; max-width: 380px; text-align: center; }
-        .modal-box input { width: 100%; padding: 18px; font-size: 1.8rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 18px; outline: none; margin-bottom: 18px; background: var(--card-bg); }
-        .modal-buttons { display: flex; gap: 10px; }
-        .modal-btn { flex: 1; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 40px; border: none; cursor: pointer; }
-        .modal-btn.cancel { background:#f1f3f5; color:#666; } .modal-btn.save { background:#1a1a1a; color:white; }
-        .empty-state { text-align: center; padding: 50px 20px; color: #bbb; }
-        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .modal-box { background: white; border-radius: 20px; padding: 24px 18px; width: 90%; max-width: 340px; text-align: center; }
+        .modal-box .modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 2px; }
+        .modal-box .modal-sub { font-size: 0.78rem; color: var(--subtext); margin-bottom: 14px; }
+        .modal-box input { width: 100%; padding: 14px; font-size: 1.6rem; font-weight: 800; text-align: center; border: 3px solid var(--border); border-radius: 14px; outline: none; margin-bottom: 14px; background: var(--card-bg); }
+        .modal-btns { display: flex; gap: 8px; }
+        .modal-btn { flex: 1; padding: 12px; font-size: 0.9rem; font-weight: 700; border-radius: 30px; border: none; cursor: pointer; }
+        .modal-btn.cancel { background: #f1f3f5; color: #666; } .modal-btn.save { background: #1a1a1a; color: white; }
+        .empty-state { text-align: center; padding: 35px 18px; color: #bbb; }
+        .empty-state span { font-size: 3rem; display: block; margin-bottom: 6px; }
+        .toast { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 9px 20px; border-radius: 25px; font-size: 0.8rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
         .toast.show { opacity: 1; }
-        .reminder-mini { font-size: 0.8rem; color: var(--subtext); text-align: center; padding: 14px 0; font-weight: 600; }
-        .install-banner { display: none; background: #1a1a1a; color: white; text-align: center; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        .install-banner.show { display: block; }
+        .reminder-mini { font-size: 0.7rem; color: var(--subtext); text-align: center; padding: 10px 0; font-weight: 600; }
+        .alert-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 360px; z-index: 3000; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 10px; padding: 10px 14px; display: none; align-items: flex-start; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .alert-banner.show { display: flex; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .alert-icon { color: #F87171; font-size: 1.1rem; flex-shrink: 0; }
+        .alert-content { flex: 1; }
+        .alert-head { color: #991B1B; font-weight: 800; font-size: 0.85rem; }
+        .alert-body { color: #B91C1C; font-weight: 700; font-size: 0.95rem; margin-top: 2px; }
+        .alert-time { color: #DC2626; font-size: 0.68rem; margin-top: 1px; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="install-banner" id="installBanner" onclick="installApp()">📲 Tap to install for push notifications</div>
-
     <div class="topbar">
-        <div class="topbar-left"><div class="title">📦 Bulk Stock</div><div class="date" id="dateDisplay"></div></div>
+        <div class="topbar-left">
+            <div>
+                <div class="title">📦 Bulk Stock</div>
+                <div class="date" id="dateDisplay"></div>
+            </div>
+            <span class="name-badge">SAHAD</span>
+        </div>
         <div class="mode-switch">
             <button class="mode-btn active" id="btnEdit" onclick="switchMode('edit')">✏️</button>
             <button class="mode-btn" id="btnView" onclick="switchMode('view')">📖</button>
         </div>
     </div>
 
-    <div class="sync-info-bar">
+    <div class="sync-bar">
         <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● LIVE</span>
-        <span class="sync-time-text">Updated: <strong id="lastUpdatedText">--:--</strong></span>
+        <span class="sync-time">Updated: <strong id="lastUpdated">--:--</strong></span>
     </div>
 
     <div class="search-bar">
-        <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
+        <div class="search-wrap">
+            <span>🔍</span>
             <input type="text" id="searchInput" placeholder="Search items..." autocomplete="off" oninput="filterItems()">
-            <button class="clear-search" id="clearSearchBtn" onclick="clearSearch()">✕</button>
         </div>
     </div>
 
     <div class="main-content">
         <div class="section visible" id="editSection">
-            <div class="add-item-row">
-                <input type="text" id="newItemName" class="name-input" placeholder="Item name..." autocomplete="off">
-                <input type="number" id="newItemQty" class="qty-input" placeholder="Qty" value="10" min="0">
+            <!-- BULK ADD BUTTONS -->
+            <div class="bulk-add-bar">
+                <button class="bulk-btn primary" onclick="bulkAddAll()">📋 Add All Items</button>
+                <button class="bulk-btn" onclick="bulkAddRice()">🍚 Rice</button>
+                <button class="bulk-btn" onclick="bulkAddBiryani()">🥘 Biryani</button>
+                <button class="bulk-btn" onclick="bulkAddCurry()">🍛 Curry</button>
+            </div>
+            
+            <div class="add-row">
+                <input type="text" id="newItemName" class="name-in" placeholder="Item name..." autocomplete="off">
+                <input type="number" id="newItemQty" class="qty-in" placeholder="Qty" value="10" min="0">
                 <button class="add-btn" onclick="addItem()">+</button>
             </div>
-            <div class="edit-item-list" id="editItemList"></div>
-            <div class="empty-state" id="editEmpty" style="display:none;"><span style="font-size:4rem">📝</span><p>No items yet</p></div>
+            <div class="item-list" id="editItemList"></div>
+            <div class="empty-state" id="editEmpty" style="display:none;"><span>📝</span><p>No items yet</p></div>
         </div>
         <div class="section" id="viewSection">
             <div class="view-header">
-                <div class="summary-pills">
+                <div class="pills">
                     <span class="pill total" id="pillTotal">Total: 0</span>
                     <span class="pill green" id="pillGreen">● 0</span>
                     <span class="pill orange" id="pillOrange">● 0</span>
                     <span class="pill red" id="pillRed">● 0</span>
                 </div>
-                <div class="reminder-toggle-view" onclick="toggleReminderView()">
-                    <span id="reminderIconView">🔔</span><span id="reminderTextView">ON</span>
+                <div class="remind-toggle" onclick="toggleReminder()">
+                    <span id="remindIcon">🔔</span><span id="remindText">ON</span>
                 </div>
             </div>
-            <div class="view-item-list" id="viewItemList"></div>
-            <div class="empty-state" id="viewEmpty" style="display:none;"><span style="font-size:4rem">📖</span><p>Nothing to show</p></div>
-            <div class="reminder-mini" id="nextReminderMini"></div>
+            <div class="item-list" id="viewItemList"></div>
+            <div class="empty-state" id="viewEmpty" style="display:none;"><span>📖</span><p>Nothing to show</p></div>
+            <div class="reminder-mini" id="nextReminder"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="qtyModal" style="display:none;" onclick="closeModalOutside(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <div style="font-weight:800;margin-bottom:4px">Update Quantity</div>
-            <div style="color:#6b7280;margin-bottom:18px;font-size:0.85rem" id="modalSubtitle"></div>
+            <div class="modal-title">Update Quantity</div>
+            <div class="modal-sub" id="modalSubtitle"></div>
             <input type="number" id="modalInput" min="0" value="0">
-            <div class="modal-buttons">
+            <div class="modal-btns">
                 <button class="modal-btn cancel" onclick="closeQtyModal()">Cancel</button>
                 <button class="modal-btn save" onclick="saveQtyModal()">Save</button>
             </div>
+        </div>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-content">
+            <div class="alert-head">Item Finished</div>
+            <div class="alert-body" id="alertItems"></div>
+            <div class="alert-time" id="alertTime"></div>
         </div>
     </div>
 
@@ -161,139 +180,201 @@
     <script>
         const BIN_ID = '69f994d236566621a827ea7c';
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-        const LOCAL_KEY = 'bulk_stock_v2';
-        const ONESIGNAL_APP_ID = 'c51d289a-3d5d-4c04-a391-28891c9e491c';
-        const ONESIGNAL_API_KEY = 'os_v2_app_yuosrgr5lvgaji4rfcerzhsjdqebfcbjq37u744o5jma6mc6b7e5wa2cfs7anknjau4z5d2q6rbgzrgctenzsxph3etaemrwiwpzyaa';
+        const LOCAL_KEY = 'bulk_stock_data';
 
-        let stockData=[],previousData=[],reminderOn=true,currentMode='edit';
-        let editingIndex=null,lastSyncTime=null,todayDate=new Date().toDateString();
-        let deferredPrompt=null,isFirstLoad=true;
+        // ============ PRESET ITEMS ============
+        const PRESETS = {
+            all: [
+                {name:'Chicken Biryani',qty:15},{name:'Mutton Biryani',qty:12},{name:'Beef Biryani',qty:12},
+                {name:'Mandhi Rice',qty:10},{name:'Ghee Rice',qty:10},
+                {name:'Beef Curry',qty:10},{name:'Beef Fry',qty:10},
+                {name:'Malabar Chicken Chilli',qty:10},{name:'Tharavad Chicken Curry',qty:10},
+                {name:'Mutton Chops',qty:8},{name:'Beef Chops',qty:8},
+                {name:'Mutton Soup',qty:8},{name:'Mutton Curry',qty:8},
+                {name:'Half-Cooked Tandoor',qty:5},{name:'Half-Cooked Alfaham',qty:5}
+            ],
+            rice: [{name:'Mandhi Rice',qty:10},{name:'Ghee Rice',qty:10}],
+            biryani: [{name:'Chicken Biryani',qty:15},{name:'Mutton Biryani',qty:12},{name:'Beef Biryani',qty:12}],
+            curry: [{name:'Beef Curry',qty:10},{name:'Beef Fry',qty:10},{name:'Malabar Chicken Chilli',qty:10},{name:'Tharavad Chicken Curry',qty:10},{name:'Mutton Curry',qty:8},{name:'Mutton Soup',qty:8}]
+        };
 
-        function playSound(t){
-            try{const c=new(window.AudioContext||window.webkitAudioContext)();const b=(f,d,del,g=0.2)=>setTimeout(()=>{const o=c.createOscillator(),v=c.createGain();o.connect(v);v.connect(c.destination);o.frequency.value=f;o.type='sine';v.gain.value=g;o.start();o.stop(c.currentTime+d)},del);t==='finished'?(b(660,0.15,0),b(660,0.15,200),b(880,0.3,400)):(b(523,0.12,0,0.15),b(659,0.12,100,0.15),b(784,0.2,200,0.15))}catch(e){}
-            if(navigator.vibrate)navigator.vibrate(t==='finished'?[200,100,200]:[80]);
-        }
-        function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800)}
-        function formatTime(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):'--:--'}
-        function updateSyncStatus(s){
-            const b=document.getElementById('syncBadge');
-            s==='syncing'?(b.textContent='⟳ SYNCING',b.style.background='#fef9e7',b.style.color='#b7950b'):s==='synced'?(b.textContent='● LIVE',b.style.background='#eafaf1',b.style.color='#1e8449'):(b.textContent='● OFFLINE',b.style.background='#fdedec',b.style.color='#b03a2e');
-            document.getElementById('lastUpdatedText').textContent=formatTime(lastSyncTime);
-        }
-        function detectChanges(nd,od){
-            const f=[],u=[];
-            nd.forEach(n=>{const o=od.find(x=>x.name===n.name);if(o){if(n.qty!==o.qty){if(n.qty===0&&!n.alerted){f.push(n.name);n.alerted=true;n.zeroTime=Date.now()}else u.push(n.name+' ('+o.qty+' → '+n.qty+')')}}else u.push(n.name+' (NEW)')});
-            od.forEach(o=>{if(!nd.find(n=>n.name===o.name))u.push(o.name+' (REMOVED)')});
-            return{finished:f,updated:u};
-        }
-        function getStatus(q){return q===0?'red':q<=5?'orange':'green'}
-        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+        let stockData = [], previousData = [], reminderOn = true, currentMode = 'edit';
+        let editingIndex = null, lastSyncTime = null, todayDate = new Date().toDateString();
+        let isFirstLoad = true, alertTimer = null;
+        let audioCtx = null;
 
-        async function sendPushNotification(title,message){
-            try{
-                await fetch('https://onesignal.com/api/v1/notifications',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json','Authorization':'Basic '+btoa(ONESIGNAL_API_KEY)},
-                    body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['Subscribed Users'],headings:{en:title},contents:{en:message},url:'https://oryxvillagekanhjagad-crypto.github.io/bulk-stock/'})
-                });
-            }catch(e){console.log('Push failed')}
-        }
-
-        async function fetchData(){
-            try{
-                updateSyncStatus('syncing');
-                const r=await fetch(API_URL+'/latest');
-                const j=await r.json();
-                let nd=j.record||[];
-                if(nd.length===0&&isFirstLoad){const b=localStorage.getItem(LOCAL_KEY);if(b){nd=JSON.parse(b);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{})}}
-                if(new Date().toDateString()!==todayDate){nd.forEach(i=>{delete i.alerted;delete i.zeroTime});todayDate=new Date().toDateString()}
-                if(!isFirstLoad&&previousData.length>0){
-                    const ch=detectChanges(nd,previousData);
-                    if(ch.finished.length>0){showToast('🚨 '+ch.finished.join(', ')+' finished!');playSound('finished');fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});sendPushNotification('Item Finished',ch.finished.join(', ')+' — just hit zero!')}
-                    if(ch.updated.length>0)showToast('📝 '+ch.updated.join(', '));
+        // ============ BULK ADD ============
+        function bulkAddItems(items) {
+            let added = 0;
+            items.forEach(item => {
+                if (!stockData.some(i => i.name.toLowerCase() === item.name.toLowerCase())) {
+                    stockData.push({ name: item.name, qty: item.qty });
+                    added++;
                 }
-                previousData=JSON.parse(JSON.stringify(nd));stockData=nd;
-                localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));lastSyncTime=Date.now();updateSyncStatus('synced');isFirstLoad=false;renderAll();
-            }catch(e){updateSyncStatus('error');const b=localStorage.getItem(LOCAL_KEY);if(b&&stockData.length===0){stockData=JSON.parse(b);renderAll()}}
+            });
+            if (added > 0) { saveAll(); showToast('✅ Added ' + added + ' items'); }
+            else showToast('⚠️ All items already exist');
+        }
+        function bulkAddAll() { bulkAddItems(PRESETS.all); }
+        function bulkAddRice() { bulkAddItems(PRESETS.rice); }
+        function bulkAddBiryani() { bulkAddItems(PRESETS.biryani); }
+        function bulkAddCurry() { bulkAddItems(PRESETS.curry); }
+
+        // ============ NOTIFICATION SOUND ============
+        function playNotificationSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = audioCtx;
+                if (ctx.state === 'suspended') ctx.resume();
+                const now = ctx.currentTime;
+                function note(freq, start, dur, vol = 0.22) {
+                    const o = ctx.createOscillator(), g = ctx.createGain();
+                    o.type = 'sine'; o.frequency.value = freq;
+                    g.gain.setValueAtTime(vol, start);
+                    g.gain.exponentialRampToValueAtTime(0.01, start + dur);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(start); o.stop(start + dur);
+                }
+                if (type === 'finished') { note(880, now, 0.18, 0.28); note(660, now + 0.18, 0.22, 0.28); note(440, now + 0.4, 0.35, 0.32); }
+                else { note(523, now, 0.12, 0.18); note(659, now + 0.1, 0.12, 0.18); note(784, now + 0.2, 0.12, 0.18); note(1047, now + 0.3, 0.25, 0.22); }
+            } catch(e) {}
+            if (navigator.vibrate) navigator.vibrate(type === 'finished' ? [180, 80, 180, 80, 250] : [80, 40, 80]);
         }
 
-        async function saveAll(){
-            localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));renderAll();
-            try{updateSyncStatus('syncing');await fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});lastSyncTime=Date.now();updateSyncStatus('synced')}catch(e){}
+        function formatTime(ts) { if (!ts) return '--:--'; return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
+        function updateSyncBadge(s) {
+            const b = document.getElementById('syncBadge');
+            if (s === 'syncing') { b.textContent = '⟳ SYNCING'; b.style.background = '#fef9e7'; b.style.color = '#b7950b'; }
+            else if (s === 'synced') { b.textContent = '● LIVE'; b.style.background = '#eafaf1'; b.style.color = '#1e8449'; }
+            else { b.textContent = '● OFFLINE'; b.style.background = '#fdedec'; b.style.color = '#b03a2e'; }
+            document.getElementById('lastUpdated').textContent = formatTime(lastSyncTime);
+        }
+        function showAlert(items, time) {
+            if (alertTimer) clearTimeout(alertTimer);
+            document.getElementById('alertItems').textContent = Array.isArray(items) ? items.join('  ·  ') : items;
+            document.getElementById('alertTime').textContent = 'Finished: ' + formatTime(time || Date.now());
+            document.getElementById('alertBanner').classList.add('show');
+            playNotificationSound('finished');
+            alertTimer = setTimeout(() => document.getElementById('alertBanner').classList.remove('show'), 4000);
+        }
+        function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1500); }
+        function getStatus(q) { return q === 0 ? 'red' : q <= 5 ? 'orange' : 'green'; }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function detectChanges(nd, od) {
+            const finished = [], updated = [];
+            nd.forEach(n => {
+                const o = od.find(x => x.name === n.name);
+                if (o) { if (n.qty !== o.qty) { if (n.qty === 0 && !n.alerted) { finished.push(n.name); n.alerted = true; n.zeroTime = Date.now(); } else updated.push(n.name + ' (' + o.qty + ' → ' + n.qty + ')'); } }
+                else updated.push(n.name + ' (NEW)');
+            });
+            od.forEach(o => { if (!nd.find(n => n.name === o.name)) updated.push(o.name + ' (REMOVED)'); });
+            return { finished, updated };
         }
 
-        function renderEdit(){
-            const l=document.getElementById('editItemList'),e=document.getElementById('editEmpty');
-            if(stockData.length===0){l.innerHTML='';e.style.display='block';return}
-            e.style.display='none';
-            l.innerHTML=stockData.map((i,x)=>`<div class="edit-item-card" onclick="openQtyModal(${x})"><span class="item-name-edit">${esc(i.name)}</span><span class="qty-badge-edit ${getStatus(i.qty)}">${i.qty}</span><button class="delete-btn-edit" onclick="deleteItem(event,${x})">🗑️</button></div>`).join('');
+        async function fetchData() {
+            try {
+                updateSyncBadge('syncing');
+                const r = await fetch(API_URL + '/latest');
+                const j = await r.json();
+                let nd = j.record || [];
+                if (nd.length === 0 && isFirstLoad) { const b = localStorage.getItem(LOCAL_KEY); if (b) { nd = JSON.parse(b); fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nd) }).catch(()=>{}); } }
+                if (new Date().toDateString() !== todayDate) { nd.forEach(i => { delete i.alerted; delete i.zeroTime; }); todayDate = new Date().toDateString(); }
+                if (!isFirstLoad && previousData.length > 0) {
+                    const ch = detectChanges(nd, previousData);
+                    if (ch.finished.length > 0) { showAlert(ch.finished, nd.find(i => ch.finished.includes(i.name))?.zeroTime); fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nd) }).catch(()=>{}); }
+                    if (ch.updated.length > 0) { showToast('📝 ' + ch.updated.join(', ')); playNotificationSound('update'); }
+                }
+                previousData = JSON.parse(JSON.stringify(nd)); stockData = nd;
+                localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData)); lastSyncTime = Date.now(); updateSyncBadge('synced'); isFirstLoad = false; renderAll();
+            } catch(e) { updateSyncBadge('error'); const b = localStorage.getItem(LOCAL_KEY); if (b && stockData.length === 0) { stockData = JSON.parse(b); renderAll(); } }
         }
 
-        function renderView(){
-            const l=document.getElementById('viewItemList'),e=document.getElementById('viewEmpty');
-            if(stockData.length===0){l.innerHTML='';e.style.display='block';updatePills();return}
-            e.style.display='none';
-            const s=[...stockData].sort((a,b)=>{const o={red:3,orange:2,green:1};return(o[getStatus(a.qty)]||0)-(o[getStatus(b.qty)]||0)});
-            l.innerHTML=s.map(i=>`<div class="view-item-card status-${getStatus(i.qty)}"><span>${esc(i.name)}</span><span class="view-qty-badge ${getStatus(i.qty)}">${i.qty}</span></div>`).join('');
-            updatePills();updateReminderMini();
+        async function saveAll() {
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(stockData)); renderAll();
+            try { updateSyncBadge('syncing'); await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockData) }); lastSyncTime = Date.now(); updateSyncBadge('synced'); } catch(e) {}
         }
 
-        function updatePills(){
-            let t=0,g=0,o=0,r=0;
-            stockData.forEach(i=>{t+=i.qty;const s=getStatus(i.qty);if(s==='green')g++;if(s==='orange')o++;if(s==='red')r++});
-            document.getElementById('pillTotal').textContent='Total: '+t;
-            document.getElementById('pillGreen').textContent='● '+g;
-            document.getElementById('pillOrange').textContent='● '+o;
-            document.getElementById('pillRed').textContent='● '+r;
+        function renderEdit() {
+            const l = document.getElementById('editItemList'), e = document.getElementById('editEmpty');
+            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; return; }
+            e.style.display = 'none';
+            l.innerHTML = stockData.map((i, x) => `<div class="item-card" onclick="openQtyModal(${x})"><span class="item-name">${esc(i.name)}</span><span class="qty-badge ${getStatus(i.qty)}">${i.qty}</span><button class="del-btn" onclick="deleteItem(event,${x})">🗑</button></div>`).join('');
+        }
+        function renderView() {
+            const l = document.getElementById('viewItemList'), e = document.getElementById('viewEmpty');
+            if (stockData.length === 0) { l.innerHTML = ''; e.style.display = 'block'; updatePills(); return; }
+            e.style.display = 'none';
+            const s = [...stockData].sort((a, b) => { const o = { red: 3, orange: 2, green: 1 }; return (o[getStatus(a.qty)] || 0) - (o[getStatus(b.qty)] || 0); });
+            l.innerHTML = s.map(i => `<div class="view-card ${getStatus(i.qty)}"><span>${esc(i.name)}</span><span class="view-qty ${getStatus(i.qty)}">${i.qty}</span></div>`).join('');
+            updatePills(); updateReminder();
+        }
+        function updatePills() {
+            let t = 0, g = 0, o = 0, r = 0;
+            stockData.forEach(i => { t += i.qty; const s = getStatus(i.qty); if (s === 'green') g++; if (s === 'orange') o++; if (s === 'red') r++; });
+            document.getElementById('pillTotal').textContent = 'Total: ' + t;
+            document.getElementById('pillGreen').textContent = '● ' + g;
+            document.getElementById('pillOrange').textContent = '● ' + o;
+            document.getElementById('pillRed').textContent = '● ' + r;
+        }
+        function renderAll() { renderEdit(); renderView(); }
+        function openQtyModal(x) { editingIndex = x; document.getElementById('modalSubtitle').textContent = stockData[x].name; document.getElementById('modalInput').value = stockData[x].qty; document.getElementById('qtyModal').style.display = 'flex'; setTimeout(() => { document.getElementById('modalInput').focus(); document.getElementById('modalInput').select(); }, 100); }
+        function closeQtyModal() { document.getElementById('qtyModal').style.display = 'none'; editingIndex = null; }
+        function closeModalOutside(e) { if (e.target === document.getElementById('qtyModal')) closeQtyModal(); }
+        function saveQtyModal() {
+            if (editingIndex === null) return;
+            const nq = Math.max(0, parseInt(document.getElementById('modalInput').value) || 0);
+            if (nq === 0 && stockData[editingIndex].qty !== 0) { stockData[editingIndex].alerted = false; stockData[editingIndex].zeroTime = Date.now(); }
+            if (nq > 0) { delete stockData[editingIndex].alerted; delete stockData[editingIndex].zeroTime; }
+            stockData[editingIndex].qty = nq; saveAll(); closeQtyModal();
+        }
+        function addItem() {
+            const n = document.getElementById('newItemName').value.trim(), q = parseInt(document.getElementById('newItemQty').value) || 0;
+            if (!n) { showToast('⚠️ Enter item name'); return; }
+            if (stockData.some(i => i.name.toLowerCase() === n.toLowerCase())) { showToast('⚠️ Already exists'); return; }
+            stockData.push({ name: n, qty: Math.max(0, q) });
+            if (q === 0) { stockData[stockData.length-1].alerted = true; stockData[stockData.length-1].zeroTime = Date.now(); }
+            document.getElementById('newItemName').value = ''; document.getElementById('newItemQty').value = '10'; saveAll(); document.getElementById('newItemName').focus();
+        }
+        function deleteItem(e, x) { e.stopPropagation(); stockData.splice(x, 1); saveAll(); }
+        function filterItems() {
+            const t = document.getElementById('searchInput').value.trim().toLowerCase();
+            document.querySelectorAll('#editItemList .item-card').forEach(c => c.classList.toggle('hidden', t !== '' && !c.querySelector('.item-name').textContent.toLowerCase().includes(t)));
+            document.querySelectorAll('#viewItemList .view-card').forEach(c => c.classList.toggle('hidden', t !== '' && !c.querySelector('span').textContent.toLowerCase().includes(t)));
+        }
+        function switchMode(m) {
+            currentMode = m;
+            document.getElementById('btnEdit').classList.toggle('active', m === 'edit');
+            document.getElementById('btnView').classList.toggle('active', m === 'view');
+            document.getElementById('editSection').classList.toggle('visible', m === 'edit');
+            document.getElementById('viewSection').classList.toggle('visible', m === 'view');
+            renderAll();
         }
 
-        function renderAll(){renderEdit();renderView()}
-
-        function openQtyModal(x){editingIndex=x;document.getElementById('modalSubtitle').textContent=stockData[x].name;document.getElementById('modalInput').value=stockData[x].qty;document.getElementById('qtyModal').style.display='flex';setTimeout(()=>{document.getElementById('modalInput').focus();document.getElementById('modalInput').select()},150)}
-        function closeQtyModal(){document.getElementById('qtyModal').style.display='none';editingIndex=null}
-        function closeModalOutside(e){if(e.target===document.getElementById('qtyModal'))closeQtyModal()}
-        function saveQtyModal(){
-            if(editingIndex===null)return;
-            const nq=Math.max(0,parseInt(document.getElementById('modalInput').value)||0);
-            if(nq===0&&stockData[editingIndex].qty!==0){stockData[editingIndex].alerted=false;stockData[editingIndex].zeroTime=Date.now()}
-            if(nq>0){delete stockData[editingIndex].alerted;delete stockData[editingIndex].zeroTime}
-            stockData[editingIndex].qty=nq;saveAll();closeQtyModal();
+        let ri = null;
+        function startReminder() { stopReminder(); ri = setInterval(() => { if (new Date().getHours() >= 19 && new Date().getHours() <= 23) playNotificationSound('finished'); }, 60000); updateReminder(); }
+        function stopReminder() { if (ri) { clearInterval(ri); ri = null; } }
+        function toggleReminder() { reminderOn = !reminderOn; localStorage.setItem('bulk_reminder', JSON.stringify(reminderOn)); reminderOn ? startReminder() : stopReminder(); document.getElementById('remindIcon').textContent = reminderOn ? '🔔' : '🔕'; document.getElementById('remindText').textContent = reminderOn ? 'ON' : 'OFF'; }
+        function updateReminder() {
+            const e = document.getElementById('nextReminder');
+            if (!reminderOn) { e.textContent = '🔕 Reminder OFF'; return; }
+            const h = new Date().getHours(); let n;
+            if (h < 19) n = '7:00 PM'; else if (h >= 23) n = 'Tomorrow 7:00 PM'; else { const nh = h + 1; n = (nh > 12 ? nh - 12 : nh) + ':00 ' + (nh >= 12 ? 'PM' : 'AM'); }
+            e.textContent = '⏰ Next alert: ' + n;
         }
 
-        function addItem(){
-            const n=document.getElementById('newItemName').value.trim(),q=parseInt(document.getElementById('newItemQty').value)||0;
-            if(!n){showToast('⚠️ Enter item name');return}
-            if(stockData.some(i=>i.name.toLowerCase()===n.toLowerCase())){showToast('⚠️ Already exists');return}
-            stockData.push({name:n,qty:Math.max(0,q)});
-            if(q===0){stockData[stockData.length-1].alerted=true;stockData[stockData.length-1].zeroTime=Date.now()}
-            document.getElementById('newItemName').value='';document.getElementById('newItemQty').value='10';saveAll();document.getElementById('newItemName').focus();
-        }
+        document.addEventListener('keydown', function(e) { if (document.getElementById('qtyModal').style.display === 'flex') { if (e.key === 'Enter') { e.preventDefault(); saveQtyModal(); } if (e.key === 'Escape') closeQtyModal(); } });
+        document.getElementById('newItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('newItemQty').focus(); } });
+        document.getElementById('newItemQty').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
 
-        function deleteItem(e,x){e.stopPropagation();stockData.splice(x,1);saveAll()}
-        function switchMode(m){currentMode=m;document.getElementById('btnEdit').classList.toggle('active',m==='edit');document.getElementById('btnView').classList.toggle('active',m==='view');document.getElementById('editSection').classList.toggle('visible',m==='edit');document.getElementById('viewSection').classList.toggle('visible',m==='view');renderAll()}
-
-        let ri=null;
-        function startReminder(){stopReminder();ri=setInterval(()=>{if(new Date().getHours()>=19&&new Date().getHours()<=23)playSound('finished')},60000);updateReminderMini()}
-        function stopReminder(){if(ri){clearInterval(ri);ri=null}}
-        function toggleReminderView(){reminderOn=!reminderOn;localStorage.setItem('bulk_reminder',JSON.stringify(reminderOn));reminderOn?startReminder():stopReminder();document.getElementById('reminderIconView').textContent=reminderOn?'🔔':'🔕';document.getElementById('reminderTextView').textContent=reminderOn?'ON':'OFF'}
-        function updateReminderMini(){const e=document.getElementById('nextReminderMini');if(!reminderOn){e.textContent='🔕 Reminder OFF';return}const h=new Date().getHours();let n;if(h<19)n='7:00 PM';else if(h>=23)n='Tomorrow 7:00 PM';else{const nh=h+1;n=(nh>12?nh-12:nh)+':00 '+(nh>=12?'PM':'AM')}e.textContent='⏰ Next: '+n}
-
-        window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show')});
-        function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{document.getElementById('installBanner').classList.remove('show');deferredPrompt=null})}}
-        window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
-
-        document.addEventListener('keydown',function(e){if(document.getElementById('qtyModal').style.display==='flex'){if(e.key==='Enter'){e.preventDefault();saveQtyModal()}if(e.key==='Escape')closeQtyModal()}});
-        document.getElementById('newItemName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('newItemQty').focus()}});
-        document.getElementById('newItemQty').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addItem()}});
-
-        async function init(){
-            document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-            reminderOn=JSON.parse(localStorage.getItem('bulk_reminder')||'true');
-            document.getElementById('reminderIconView').textContent=reminderOn?'🔔':'🔕';
-            document.getElementById('reminderTextView').textContent=reminderOn?'ON':'OFF';
-            if(reminderOn)startReminder();
+        async function init() {
+            document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            reminderOn = JSON.parse(localStorage.getItem('bulk_reminder') || 'true');
+            document.getElementById('remindIcon').textContent = reminderOn ? '🔔' : '🔕';
+            document.getElementById('remindText').textContent = reminderOn ? 'ON' : 'OFF';
+            if (reminderOn) startReminder();
             await fetchData();
-            setInterval(fetchData,2000);
+            setInterval(fetchData, 2000);
         }
         init();
     </script>
