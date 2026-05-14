@@ -29,13 +29,6 @@
         .search-wrap input { flex: 1; padding: 12px 0; border: none; background: transparent; font-size: 0.95rem; font-weight: 500; outline: none; }
         .main-content { padding: 4px 18px 90px; }
         .section { display: none; } .section.visible { display: block; }
-        
-        /* Bulk Add Button */
-        .bulk-add-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-        .bulk-btn { padding: 8px 14px; border-radius: 20px; border: 2px solid #e0e0e0; background: white; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-        .bulk-btn:active { background: #1a1a1a; color: white; border-color: #1a1a1a; transform: scale(0.95); }
-        .bulk-btn.primary { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-        
         .add-row { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 8px; border-radius: 14px; }
         .add-row input { padding: 12px; border: 2px solid var(--border); border-radius: 12px; font-size: 0.95rem; background: white; outline: none; font-weight: 500; transition: border 0.15s; }
         .add-row input:focus { border-color: #1a1a1a; }
@@ -120,14 +113,6 @@
 
     <div class="main-content">
         <div class="section visible" id="editSection">
-            <!-- BULK ADD BUTTONS -->
-            <div class="bulk-add-bar">
-                <button class="bulk-btn primary" onclick="bulkAddAll()">📋 Add All Items</button>
-                <button class="bulk-btn" onclick="bulkAddRice()">🍚 Rice</button>
-                <button class="bulk-btn" onclick="bulkAddBiryani()">🥘 Biryani</button>
-                <button class="bulk-btn" onclick="bulkAddCurry()">🍛 Curry</button>
-            </div>
-            
             <div class="add-row">
                 <input type="text" id="newItemName" class="name-in" placeholder="Item name..." autocomplete="off">
                 <input type="number" id="newItemQty" class="qty-in" placeholder="Qty" value="10" min="0">
@@ -182,45 +167,11 @@
         const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
         const LOCAL_KEY = 'bulk_stock_data';
 
-        // ============ PRESET ITEMS ============
-        const PRESETS = {
-            all: [
-                {name:'Chicken Biryani',qty:15},{name:'Mutton Biryani',qty:12},{name:'Beef Biryani',qty:12},
-                {name:'Mandhi Rice',qty:10},{name:'Ghee Rice',qty:10},
-                {name:'Beef Curry',qty:10},{name:'Beef Fry',qty:10},
-                {name:'Malabar Chicken Chilli',qty:10},{name:'Tharavad Chicken Curry',qty:10},
-                {name:'Mutton Chops',qty:8},{name:'Beef Chops',qty:8},
-                {name:'Mutton Soup',qty:8},{name:'Mutton Curry',qty:8},
-                {name:'Half-Cooked Tandoor',qty:5},{name:'Half-Cooked Alfaham',qty:5}
-            ],
-            rice: [{name:'Mandhi Rice',qty:10},{name:'Ghee Rice',qty:10}],
-            biryani: [{name:'Chicken Biryani',qty:15},{name:'Mutton Biryani',qty:12},{name:'Beef Biryani',qty:12}],
-            curry: [{name:'Beef Curry',qty:10},{name:'Beef Fry',qty:10},{name:'Malabar Chicken Chilli',qty:10},{name:'Tharavad Chicken Curry',qty:10},{name:'Mutton Curry',qty:8},{name:'Mutton Soup',qty:8}]
-        };
-
         let stockData = [], previousData = [], reminderOn = true, currentMode = 'edit';
         let editingIndex = null, lastSyncTime = null, todayDate = new Date().toDateString();
         let isFirstLoad = true, alertTimer = null;
         let audioCtx = null;
 
-        // ============ BULK ADD ============
-        function bulkAddItems(items) {
-            let added = 0;
-            items.forEach(item => {
-                if (!stockData.some(i => i.name.toLowerCase() === item.name.toLowerCase())) {
-                    stockData.push({ name: item.name, qty: item.qty });
-                    added++;
-                }
-            });
-            if (added > 0) { saveAll(); showToast('✅ Added ' + added + ' items'); }
-            else showToast('⚠️ All items already exist');
-        }
-        function bulkAddAll() { bulkAddItems(PRESETS.all); }
-        function bulkAddRice() { bulkAddItems(PRESETS.rice); }
-        function bulkAddBiryani() { bulkAddItems(PRESETS.biryani); }
-        function bulkAddCurry() { bulkAddItems(PRESETS.curry); }
-
-        // ============ NOTIFICATION SOUND ============
         function playNotificationSound(type) {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
