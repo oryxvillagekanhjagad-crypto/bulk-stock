@@ -18,26 +18,33 @@
         .name-badge { font-size: 0.65rem; font-weight: 600; color: #999; background: #f1f3f5; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.3px; opacity: 0.7; }
         .topbar-left .date { font-size: 0.75rem; color: var(--subtext); font-weight: 500; }
 
-        .toggle-switch { position: relative; display: inline-block; }
-        .toggle-switch input { display: none; }
-        .toggle-track { display: flex; align-items: center; width: 96px; height: 48px; background: #1a1a1a; border-radius: 30px; cursor: pointer; transition: background 0.3s ease; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .toggle-track.view-mode { background: #e74c3c; }
-        .toggle-thumb { position: absolute; top: 4px; left: 4px; width: 40px; height: 40px; background: white; border-radius: 50%; transition: transform 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; }
-        .toggle-track.view-mode .toggle-thumb { transform: translateX(48px); }
-        .toggle-icon-left, .toggle-icon-right { position: absolute; top: 50%; transform: translateY(-50%); font-size: 1.1rem; z-index: 1; pointer-events: none; }
-        .toggle-icon-left { left: 12px; } .toggle-icon-right { right: 12px; }
+        /* ============ ROCKER SWITCH ============ */
+        .rocker { display: inline-block; position: relative; font-size: 1.4em; font-weight: bold; text-align: center; text-transform: uppercase; color: #888; width: 7em; height: 4em; overflow: hidden; border-bottom: 0.5em solid #eee; }
+        .rocker::before { content: ""; position: absolute; top: 0.5em; left: 0; right: 0; bottom: 0; background-color: #999; border: 0.5em solid #eee; border-bottom: 0; }
+        .rocker input { opacity: 0; width: 0; height: 0; }
+        .switch-left, .switch-right { cursor: pointer; position: absolute; display: flex; align-items: center; justify-content: center; height: 2.5em; width: 3em; transition: 0.2s; user-select: none; font-size: 0.9em; }
+        .switch-left { height: 2.4em; width: 2.75em; left: 0.85em; bottom: 0.4em; background-color: #ddd; transform: rotate(15deg) skewX(15deg); }
+        .switch-right { right: 0.5em; bottom: 0; background-color: #1a1a1a; color: #fff; }
+        .switch-left::before, .switch-right::before { content: ""; position: absolute; width: 0.4em; height: 2.45em; bottom: -0.45em; background-color: #ccc; transform: skewY(-65deg); }
+        .switch-left::before { left: -0.4em; }
+        .switch-right::before { right: -0.375em; background-color: transparent; transform: skewY(65deg); }
+        input:checked + .switch-left { background-color: #1a1a1a; color: #fff; bottom: 0px; left: 0.5em; height: 2.5em; width: 3em; transform: rotate(0deg) skewX(0deg); }
+        input:checked + .switch-left::before { background-color: transparent; width: 3.0833em; }
+        input:checked + .switch-left + .switch-right { background-color: #ddd; color: #888; bottom: 0.4em; right: 0.8em; height: 2.4em; width: 2.75em; transform: rotate(-15deg) skewX(-15deg); }
+        input:checked + .switch-left + .switch-right::before { background-color: #ccc; }
+        input:focus + .switch-left { color: #333; }
+        input:checked:focus + .switch-left { color: #fff; }
+        input:focus + .switch-left + .switch-right { color: #fff; }
+        input:checked:focus + .switch-left + .switch-right { color: #333; }
 
-        /* ============ SYNC BAR WITH ANIMATION ============ */
         .sync-bar { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 4px 18px; min-height: 36px; }
         .sync-badge { padding: 4px 12px; border-radius: 18px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3px; transition: all 0.2s; }
         .sync-time { font-size: 0.65rem; color: #999; font-weight: 500; }
         
-        /* Cloud Loader */
         .cloud-loader { display: none; align-items: center; gap: 4px; }
         .cloud-loader.active { display: flex; }
         .cloud-loader svg { width: 28px; height: 28px; }
         .cloud-loader .cloud-color { fill: #4387f4; }
-        .cloud-loader .arrows-color { fill: #80b1ff; }
         .cloud-loader g:nth-child(3) { transform-origin: 50% 72.8938%; fill: #80b1ff; filter: drop-shadow(0 0 4px rgba(0,0,0,0.3)); animation: cloud-rotation 1s linear infinite; }
         .cloud-loader #shapes g g circle { animation: cloud-move 2s linear infinite; }
         .cloud-loader #shapes g g circle:nth-child(2) { animation-delay: -0.66s; }
@@ -113,18 +120,16 @@
             <div><div class="title">📦 Bulk Stock</div><div class="date" id="dateDisplay"></div></div>
             <span class="name-badge">SAHAD</span>
         </div>
-        <label class="toggle-switch" onclick="toggleMode()">
+        
+        <!-- ROCKER SWITCH -->
+        <label class="rocker" onclick="toggleMode()">
             <input type="checkbox" id="modeToggle" checked>
-            <div class="toggle-track edit-mode" id="toggleTrack">
-                <span class="toggle-icon-left">🔓</span>
-                <span class="toggle-icon-right">🔒</span>
-                <div class="toggle-thumb">✏️</div>
-            </div>
+            <span class="switch-left">✏️</span>
+            <span class="switch-right">🔒</span>
         </label>
     </div>
 
     <div class="sync-bar">
-        <!-- Cloud loader animation (syncing) -->
         <div class="cloud-loader" id="cloudLoader">
             <svg viewBox="0 0 100 100">
                 <g id="cloud"><rect x="10" y="30" width="80" height="50" rx="25" class="cloud-color"/><rect x="30" y="15" width="40" height="40" rx="20" class="cloud-color"/></g>
@@ -133,16 +138,12 @@
             </svg>
             <span style="font-size:0.65rem;font-weight:700;color:#b7950b;">SYNCING</span>
         </div>
-        <!-- Normal badge (live/offline) -->
         <span id="syncBadge" class="sync-badge" style="background:#eafaf1;color:#1e8449;">● LIVE</span>
         <span class="sync-time">Updated: <strong id="lastUpdated">--:--</strong></span>
     </div>
 
     <div class="search-bar">
-        <div class="search-wrap">
-            <span>🔍</span>
-            <input type="text" id="searchInput" placeholder="Search items..." autocomplete="off" oninput="filterItems()">
-        </div>
+        <div class="search-wrap"><span>🔍</span><input type="text" id="searchInput" placeholder="Search items..." autocomplete="off" oninput="filterItems()"></div>
     </div>
 
     <div class="main-content">
@@ -157,15 +158,8 @@
         </div>
         <div class="section" id="viewSection">
             <div class="view-header">
-                <div class="pills">
-                    <span class="pill total" id="pillTotal">Total: 0</span>
-                    <span class="pill green" id="pillGreen">● 0</span>
-                    <span class="pill orange" id="pillOrange">● 0</span>
-                    <span class="pill red" id="pillRed">● 0</span>
-                </div>
-                <div class="remind-toggle" onclick="toggleReminder()">
-                    <span id="remindIcon">🔔</span><span id="remindText">ON</span>
-                </div>
+                <div class="pills"><span class="pill total" id="pillTotal">Total: 0</span><span class="pill green" id="pillGreen">● 0</span><span class="pill orange" id="pillOrange">● 0</span><span class="pill red" id="pillRed">● 0</span></div>
+                <div class="remind-toggle" onclick="toggleReminder()"><span id="remindIcon">🔔</span><span id="remindText">ON</span></div>
             </div>
             <div class="item-list" id="viewItemList"></div>
             <div class="empty-state" id="viewEmpty" style="display:none;"><span>📖</span><p>Nothing to show</p></div>
@@ -175,8 +169,7 @@
 
     <div class="modal-overlay" id="qtyModal" style="display:none;" onclick="closeModalOutside(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-title">Update Quantity</div>
-            <div class="modal-sub" id="modalSubtitle"></div>
+            <div class="modal-title">Update Quantity</div><div class="modal-sub" id="modalSubtitle"></div>
             <input type="number" id="modalInput" min="0" value="0">
             <div class="modal-btns"><button class="modal-btn cancel" onclick="closeQtyModal()">Cancel</button><button class="modal-btn save" onclick="saveQtyModal()">Save</button></div>
         </div>
@@ -200,31 +193,17 @@
         function updateSyncBadge(s){
             const badge=document.getElementById('syncBadge');
             const loader=document.getElementById('cloudLoader');
-            if(s==='syncing'){
-                badge.style.display='none';
-                loader.classList.add('active');
-            }else{
-                loader.classList.remove('active');
-                badge.style.display='inline-block';
+            if(s==='syncing'){badge.style.display='none';loader.classList.add('active');}
+            else{loader.classList.remove('active');badge.style.display='inline-block';
                 if(s==='synced'){badge.textContent='● LIVE';badge.style.background='#eafaf1';badge.style.color='#1e8449';}
-                else{badge.textContent='● OFFLINE';badge.style.background='#fdedec';badge.style.color='#b03a2e';}
-            }
+                else{badge.textContent='● OFFLINE';badge.style.background='#fdedec';badge.style.color='#b03a2e';}}
             document.getElementById('lastUpdated').textContent=formatTime(lastSyncTime);
         }
 
         function toggleMode(){if(currentMode==='edit')switchMode('view');else switchMode('edit');}
-        function updateToggleAppearance(m){
-            const track=document.getElementById('toggleTrack');
-            const thumb=document.querySelector('.toggle-thumb');
-            if(m==='edit'){track.className='toggle-track edit-mode';thumb.textContent='✏️';document.getElementById('modeToggle').checked=true;}
-            else{track.className='toggle-track view-mode';thumb.textContent='🔒';document.getElementById('modeToggle').checked=false;}
-        }
 
         function playNotificationSound(type){
-            try{
-                if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-                const ctx=audioCtx;if(ctx.state==='suspended')ctx.resume();
-                const now=ctx.currentTime;
+            try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=audioCtx;if(ctx.state==='suspended')ctx.resume();const now=ctx.currentTime;
                 function note(f,s,d,v=0.22){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(0.01,s+d);o.connect(g);g.connect(ctx.destination);o.start(s);o.stop(s+d);}
                 if(type==='finished'){note(880,now,0.18,0.28);note(660,now+0.18,0.22,0.28);note(440,now+0.4,0.35,0.32);}
                 else{note(523,now,0.12,0.18);note(659,now+0.1,0.12,0.18);note(784,now+0.2,0.12,0.18);note(1047,now+0.3,0.25,0.22);}
@@ -233,35 +212,14 @@
         }
 
         function formatTime(ts){if(!ts)return'--:--';return new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
-        function showAlert(items,time){
-            if(alertTimer)clearTimeout(alertTimer);
-            document.getElementById('alertItems').textContent=Array.isArray(items)?items.join('  ·  '):items;
-            document.getElementById('alertTime').textContent='Finished: '+formatTime(time||Date.now());
-            document.getElementById('alertBanner').classList.add('show');
-            playNotificationSound('finished');
-            alertTimer=setTimeout(()=>document.getElementById('alertBanner').classList.remove('show'),4000);
-        }
+        function showAlert(items,time){if(alertTimer)clearTimeout(alertTimer);document.getElementById('alertItems').textContent=Array.isArray(items)?items.join('  ·  '):items;document.getElementById('alertTime').textContent='Finished: '+formatTime(time||Date.now());document.getElementById('alertBanner').classList.add('show');playNotificationSound('finished');alertTimer=setTimeout(()=>document.getElementById('alertBanner').classList.remove('show'),4000);}
         function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1500);}
         function getStatus(q){return q===0?'red':q<=5?'orange':'green';}
         function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-        function detectChanges(nd,od){
-            const finished=[],updated=[];
-            nd.forEach(n=>{const o=od.find(x=>x.name===n.name);if(o){if(n.qty!==o.qty){if(n.qty===0&&!n.alerted){finished.push(n.name);n.alerted=true;n.zeroTime=Date.now();}else updated.push(n.name+' ('+o.qty+' → '+n.qty+')');}}else updated.push(n.name+' (NEW)');});
-            od.forEach(o=>{if(!nd.find(n=>n.name===o.name))updated.push(o.name+' (REMOVED)');});
-            return{finished,updated};
-        }
+        function detectChanges(nd,od){const finished=[],updated=[];nd.forEach(n=>{const o=od.find(x=>x.name===n.name);if(o){if(n.qty!==o.qty){if(n.qty===0&&!n.alerted){finished.push(n.name);n.alerted=true;n.zeroTime=Date.now();}else updated.push(n.name+' ('+o.qty+' → '+n.qty+')');}}else updated.push(n.name+' (NEW)');});od.forEach(o=>{if(!nd.find(n=>n.name===o.name))updated.push(o.name+' (REMOVED)');});return{finished,updated};}
 
-        async function fetchData(){
-            try{
-                updateSyncBadge('syncing');
-                const r=await fetch(API_URL+'/latest');const j=await r.json();let nd=j.record||[];
-                if(nd.length===0&&isFirstLoad){const b=localStorage.getItem(LOCAL_KEY);if(b){nd=JSON.parse(b);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});}}
-                if(new Date().toDateString()!==todayDate){nd.forEach(i=>{delete i.alerted;delete i.zeroTime;});todayDate=new Date().toDateString();}
-                if(!isFirstLoad&&previousData.length>0){const ch=detectChanges(nd,previousData);if(ch.finished.length>0){showAlert(ch.finished,nd.find(i=>ch.finished.includes(i.name))?.zeroTime);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});}if(ch.updated.length>0){showToast('📝 '+ch.updated.join(', '));playNotificationSound('update');}}
-                previousData=JSON.parse(JSON.stringify(nd));stockData=nd;localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));lastSyncTime=Date.now();updateSyncBadge('synced');isFirstLoad=false;renderAll();
-            }catch(e){updateSyncBadge('error');const b=localStorage.getItem(LOCAL_KEY);if(b&&stockData.length===0){stockData=JSON.parse(b);renderAll();}}
-        }
+        async function fetchData(){try{updateSyncBadge('syncing');const r=await fetch(API_URL+'/latest');const j=await r.json();let nd=j.record||[];if(nd.length===0&&isFirstLoad){const b=localStorage.getItem(LOCAL_KEY);if(b){nd=JSON.parse(b);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});}}if(new Date().toDateString()!==todayDate){nd.forEach(i=>{delete i.alerted;delete i.zeroTime;});todayDate=new Date().toDateString();}if(!isFirstLoad&&previousData.length>0){const ch=detectChanges(nd,previousData);if(ch.finished.length>0){showAlert(ch.finished,nd.find(i=>ch.finished.includes(i.name))?.zeroTime);fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(nd)}).catch(()=>{});}if(ch.updated.length>0){showToast('📝 '+ch.updated.join(', '));playNotificationSound('update');}}previousData=JSON.parse(JSON.stringify(nd));stockData=nd;localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));lastSyncTime=Date.now();updateSyncBadge('synced');isFirstLoad=false;renderAll();}catch(e){updateSyncBadge('error');const b=localStorage.getItem(LOCAL_KEY);if(b&&stockData.length===0){stockData=JSON.parse(b);renderAll();}}}
 
         async function saveAll(){localStorage.setItem(LOCAL_KEY,JSON.stringify(stockData));renderAll();try{updateSyncBadge('syncing');await fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});lastSyncTime=Date.now();updateSyncBadge('synced');}catch(e){}}
 
@@ -276,7 +234,7 @@
         function addItem(){const n=document.getElementById('newItemName').value.trim(),q=parseInt(document.getElementById('newItemQty').value)||0;if(!n){showToast('⚠️ Enter item name');return;}if(stockData.some(i=>i.name.toLowerCase()===n.toLowerCase())){showToast('⚠️ Already exists');return;}stockData.push({name:n,qty:Math.max(0,q)});if(q===0){stockData[stockData.length-1].alerted=true;stockData[stockData.length-1].zeroTime=Date.now();}document.getElementById('newItemName').value='';document.getElementById('newItemQty').value='10';saveAll();document.getElementById('newItemName').focus();}
         function deleteItem(e,x){e.stopPropagation();stockData.splice(x,1);saveAll();}
         function filterItems(){const t=document.getElementById('searchInput').value.trim().toLowerCase();document.querySelectorAll('#editItemList .item-card').forEach(c=>c.classList.toggle('hidden',t!==''&&!c.querySelector('.item-name').textContent.toLowerCase().includes(t)));document.querySelectorAll('#viewItemList .view-card').forEach(c=>c.classList.toggle('hidden',t!==''&&!c.querySelector('span').textContent.toLowerCase().includes(t)));}
-        function switchMode(m){currentMode=m;updateToggleAppearance(m);document.getElementById('editSection').classList.toggle('visible',m==='edit');document.getElementById('viewSection').classList.toggle('visible',m==='view');renderAll();}
+        function switchMode(m){currentMode=m;document.getElementById('modeToggle').checked=(m==='edit');document.getElementById('editSection').classList.toggle('visible',m==='edit');document.getElementById('viewSection').classList.toggle('visible',m==='view');renderAll();}
 
         let ri=null;
         function startReminder(){stopReminder();ri=setInterval(()=>{if(new Date().getHours()>=19&&new Date().getHours()<=23)playNotificationSound('finished');},60000);updateReminder();}
@@ -293,9 +251,8 @@
             reminderOn=JSON.parse(localStorage.getItem('bulk_reminder')||'true');
             document.getElementById('remindIcon').textContent=reminderOn?'🔔':'🔕';document.getElementById('remindText').textContent=reminderOn?'ON':'OFF';
             if(reminderOn)startReminder();
-            updateToggleAppearance('edit');
-            await fetchData();
-            setInterval(fetchData,2000);
+            document.getElementById('modeToggle').checked=true;
+            await fetchData();setInterval(fetchData,2000);
         }
         init();
     </script>
