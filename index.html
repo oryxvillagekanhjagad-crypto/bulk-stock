@@ -18,18 +18,18 @@
         .name-badge { font-size: 0.65rem; font-weight: 600; color: #999; background: #f1f3f5; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.3px; opacity: 0.7; }
         .topbar-left .date { font-size: 0.75rem; color: var(--subtext); font-weight: 500; }
 
-        /* ============ FANCY WORKING TOGGLE ============ */
-        .mode-toggle-wrap { display: flex; align-items: center; gap: 8px; }
-        .mode-label { font-size: 0.7rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
-        .mode-toggle { position: relative; width: 64px; height: 34px; background: #1a1a1a; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
-        .mode-toggle.view { background: #e74c3c; }
-        .mode-toggle .toggle-knob { position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; background: white; border-radius: 50%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-        .mode-toggle.view .toggle-knob { left: 33px; }
-        .mode-toggle .toggle-icon-left, .mode-toggle .toggle-icon-right { position: absolute; top: 50%; transform: translateY(-50%); font-size: 0.8rem; z-index: 1; pointer-events: none; transition: opacity 0.2s; }
-        .mode-toggle .toggle-icon-left { left: 8px; opacity: 1; }
-        .mode-toggle .toggle-icon-right { right: 8px; opacity: 0.3; }
-        .mode-toggle.view .toggle-icon-left { opacity: 0.3; }
-        .mode-toggle.view .toggle-icon-right { opacity: 1; }
+        /* ============ BIG FANCY TOGGLE ============ */
+        .mode-toggle-wrap { display: flex; align-items: center; gap: 6px; }
+        .mode-label { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mode-toggle { position: relative; width: 80px; height: 42px; background: linear-gradient(135deg, #ffffff, #e8e8e8); border-radius: 24px; cursor: pointer; transition: all 0.35s ease; box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1); border: 2px solid #ddd; }
+        .mode-toggle.view { background: #1a1a1a; border-color: #1a1a1a; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2); }
+        .mode-toggle .toggle-knob { position: absolute; top: 3px; left: 3px; width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 3px 8px rgba(0,0,0,0.3); color: white; }
+        .mode-toggle.view .toggle-knob { left: 41px; background: linear-gradient(135deg, #ffffff, #e0e0e0); color: #1a1a1a; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+        .mode-toggle .toggle-icon-left, .mode-toggle .toggle-icon-right { position: absolute; top: 50%; transform: translateY(-50%); font-size: 1rem; z-index: 1; pointer-events: none; transition: all 0.3s; }
+        .mode-toggle .toggle-icon-left { left: 9px; opacity: 0; }
+        .mode-toggle .toggle-icon-right { right: 9px; opacity: 1; color: #666; }
+        .mode-toggle.view .toggle-icon-left { opacity: 1; color: white; }
+        .mode-toggle.view .toggle-icon-right { opacity: 0; }
 
         .sync-bar { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 4px 18px; min-height: 36px; }
         .sync-badge { padding: 4px 12px; border-radius: 18px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3px; transition: all 0.2s; }
@@ -114,7 +114,7 @@
             <span class="name-badge">SAHAD</span>
         </div>
         
-        <!-- FANCY WORKING TOGGLE -->
+        <!-- BIG FANCY TOGGLE -->
         <div class="mode-toggle-wrap">
             <span class="mode-label">Edit</span>
             <div class="mode-toggle" id="modeToggle" onclick="toggleMode()">
